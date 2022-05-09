@@ -8,22 +8,21 @@
 #define TAMVET 100
 
 struct st_pessoa{
-    char nome[50], cidade[20], endereco[100], estado[20], email[100], nota[200], cep[12], telefone[12];
+    char nome[50], cidade[20], endereco[100], estado[20], email[100], cep[12], nota[200], telefone[12];
     int ehFixo;
 };
 
 struct st_agenda{
     struct st_pessoa contato[100];
-}agenda;
+}agenda, aux;
 
 
-lerContatos(int *i){
+int lerContatos(int *i){
 
     char opcao[2];
     int parar = FALSE;
 
     while (parar != TRUE){
-        
         printf("Digite seu nome: \n");
         fgets(agenda.contato[*i].nome, 50, stdin);
 
@@ -71,35 +70,42 @@ lerContatos(int *i){
             parar = TRUE;
         }
         getchar();
+        
         (*i)++;
     }
-
+    return *i;
 }
 
-mostrarContatos(int *i){
-    printf("\n=========== DADOS ===========\n");
-    for (int c = 0; c < *i; c++){
-        printf("=========== CONTATO %i ===========\n", (c+1));
-        printf("Nome: %s", agenda.contato[c].nome);
-        printf("Cidade: %s", agenda.contato[c].cidade);
-        printf("CEP: %s", agenda.contato[c].cep);
-        printf("Estado: %s", agenda.contato[c].estado);
-        printf("Endereço: %s", agenda.contato[c].endereco);
-        printf("Telefone: %s", agenda.contato[c].telefone);
-        printf("FIXO: ");
-        if(agenda.contato[c].ehFixo == TRUE){
-            printf("SIM");
-        }else{
-            printf("NÃO");
+void mostrarContatos(int *total){
+    if (*total == 0){
+        printf("Ainda não há contatos registrados!\n");
+        sleep(1);
+    }else{
+        printf("\n=========== DADOS ===========\n");
+        for (int c = 0; c < *total; c++){
+            printf("=========== CONTATO %i ===========\n", (c+1));
+            printf("Nome: %s", agenda.contato[c].nome);
+            printf("Cidade: %s", agenda.contato[c].cidade);
+            printf("CEP: %s", agenda.contato[c].cep);
+            printf("Estado: %s", agenda.contato[c].estado);
+            printf("Endereço: %s", agenda.contato[c].endereco);
+            printf("Telefone: %s", agenda.contato[c].telefone);
+            printf("FIXO: ");
+            if(agenda.contato[c].ehFixo == TRUE){
+                printf("SIM");
+            }else{
+                printf("NÃO");
+            }
+            printf("\nE-mail: %s", agenda.contato[c].email);
+            printf("Nota: %s", agenda.contato[c].nota);
+            printf("\n\n");
         }
-        printf("\nE-mail: %s", agenda.contato[c].email);
-        printf("Nota: %s", agenda.contato[c].nota);
-        printf("\n\n");
+
     }
 
 }
 
-organizarContatos(int *i){
+void organizarContatos(int *i){
     char aux;
     for (int p = 0; p <= i-2; p++){
         for (int j = i+1; j <= i-1; j++){
@@ -112,16 +118,60 @@ organizarContatos(int *i){
     }
 }
 
+int excluirContato(int *total){
+    int pos;
+
+    printf("Digite o número do contato que deseja excluir: \n");
+    scanf("%i", &pos);
+    pos = pos-1;
+
+    for (int i = pos; i < *total; i++){
+        printf("%i", i);
+        agenda.contato[i] = agenda.contato[i+1];
+    }
+
+    return (*total)--;
+}
+
+void formatarCep(int *total){
+
+    for (int i = 0; i < 9; i++){
+        aux.contato[*total-1].cep[i] = agenda.contato[*total-1].cep[i];
+    }
+    
+    agenda.contato[*total-1].cep[5] = '-';
+    agenda.contato[*total-1].cep[6] = aux.contato[*total-1].cep[5];
+
+    //agenda.contato[*total-1].cep[6] = aux.contato[*total-1].cep[5];
+    //agenda.contato[*total-1].cep[7] = aux.contato[*total-1].cep[6];
+    //agenda.contato[*total-1].cep[8] = aux.contato[*total-1].cep[7];
+    //agenda.contato[*total-1].cep[9] = aux.contato[*total-1].cep[8];
+
+
+    for (int i = 5; i < 10; i--){
+        agenda.contato[*total-1].cep[i+1] = aux.contato[*total-1].cep[i];
+    }
+    
+}
+
+void printarCep(int *total){
+
+}
+
 int main(int argc, char const *argv[]){
     int total = 0, opcao = 0;
 
-    while(opcao != 3){
+    while(opcao != 4){
         printf("*********** AGENDA ***********\n");
         printf("1. Ver Agenda\n");
         printf("2. Adicionar Contatos\n");
-        printf("3. Sair\n");
+        printf("3. Excluir Contatos\n");
+        printf("4. Sair\n");
         printf("\nEscolha a opção: ");
         scanf("%i", &opcao);
+        getchar();
+
+        system("clear");
 
         switch (opcao){
         case 1:
@@ -129,8 +179,14 @@ int main(int argc, char const *argv[]){
             break;
         case 2:
             lerContatos(&total);
+            formatarCep(&total);
+            system("clear");
             break;
         case 3:
+            excluirContato(&total);
+            system("clear");
+            break;
+        case 4:
             printf("Saindo do Programa...\n");
             break;
         
