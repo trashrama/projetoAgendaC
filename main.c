@@ -8,8 +8,8 @@
 #define TAMVET 100
 
 struct st_pessoa{
-    char nome[50], cidade[20], endereco[100], estado[20], email[100], nota[200], cep[15], telefone[12];
-    int ehFixo;
+    char nome[50], cidade[20], endereco[100], estado[20], email[100], nota[200], telefone[12];
+    int cep, ehFixo;
 };
 
 struct st_agenda{
@@ -30,7 +30,9 @@ int lerContatos(int *i){
         fgets(agenda.contato[*i].cidade, 20, stdin);
 
         printf("Digite seu CEP: \n");
-        fgets(agenda.contato[*i].cep, 12, stdin);
+        scanf("%i", &agenda.contato[*i].cep);
+        getchar();
+        //fgets(agenda.contato[*i].cep, 12, stdin);
 
         printf("Digite seu estado: \n");
         fgets(agenda.contato[*i].estado, 50, stdin);
@@ -86,7 +88,7 @@ void mostrarContatos(int *total){
             printf("=========== CONTATO %i ===========\n", (c+1));
             printf("Nome: %s", agenda.contato[c].nome);
             printf("Cidade: %s", agenda.contato[c].cidade);
-            printf("CEP: %s", agenda.contato[c].cep);
+            printf("CEP: %i\n", agenda.contato[c].cep);
             printf("Estado: %s", agenda.contato[c].estado);
             printf("Endereço: %s", agenda.contato[c].endereco);
             printf("Telefone: %s", agenda.contato[c].telefone);
@@ -103,6 +105,13 @@ void mostrarContatos(int *total){
 
     }
 
+}
+
+void printarCep(int total){
+    aux = 0;
+    agenda.contato[total].cep;
+    printf("%i");
+    //inutilizada, desenvolvendo a lógica no teste c
 }
 
 void organizarContatos(int *i){
@@ -133,33 +142,26 @@ int excluirContato(int *total){
     return (*total)--;
 }
 
-void formatarCep(int *total){
+// void formatarCep(int *total){
 
-    for (int i = 0; i < 9; i++){
-        aux.contato[*total-1].cep[i] = agenda.contato[*total-1].cep[i];
-    }
+//     for (int i = 0; i < 9; i++){
+//         aux.contato[*total-1].cep[i] = agenda.contato[*total-1].cep[i];
+//     }
     
-    agenda.contato[*total-1].cep[5] = '-';
-    agenda.contato[*total-1].cep[6] = aux.contato[*total-1].cep[5];
+//     agenda.contato[*total-1].cep[5] = '-';
 
-    //agenda.contato[*total-1].cep[6] = aux.contato[*total-1].cep[5];
-    //agenda.contato[*total-1].cep[7] = aux.contato[*total-1].cep[6];
-    //agenda.contato[*total-1].cep[8] = aux.contato[*total-1].cep[7];
-    //agenda.contato[*total-1].cep[9] = aux.contato[*total-1].cep[8];
+//     agenda.contato[*total-1].cep[6] = aux.contato[*total-1].cep[5];
+//     //agenda.contato[*total-1].cep[7] = aux.contato[*total-1].cep[6];
+//     //agenda.contato[*total-1].cep[8] = aux.contato[*total-1].cep[7];
+//     //agenda.contato[*total-1].cep[9] = aux.contato[*total-1].cep[8];
 
 
-    for (int i = 5; i < 10; i--){
-        agenda.contato[*total-1].cep[i+1] = aux.contato[*total-1].cep[i];
-    }
+//     for (int i = 5; i < 10; i--){
+//         agenda.contato[*total-1].cep[i+1] = aux.contato[*total-1].cep[i];
+//     }
     
-}
+// }
 
-void printarCep(int *total){
-
-    for (int i = 0; i < 9; i++){
-        agenda.contato[*total-1].cep[i];
-    }
-}
 int main(int argc, char const *argv[]){
     int total = 0, opcao = 0;
 
@@ -181,7 +183,7 @@ int main(int argc, char const *argv[]){
             break;
         case 2:
             lerContatos(&total);
-            formatarCep(&total);
+           // formatarCep(&total);
             system("clear");
             break;
         case 3:
