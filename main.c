@@ -8,7 +8,7 @@
 #define TAMVET 100
 
 struct st_pessoa{
-    char nome[50], cidade[20], endereco[100], estado[20], email[100], cep[12], nota[200], telefone[12];
+    char nome[50], cidade[20], endereco[100], estado[20], email[100], nota[200], cep[15], telefone[12];
     int ehFixo;
 };
 
@@ -156,8 +156,10 @@ void formatarCep(int *total){
 
 void printarCep(int *total){
 
+    for (int i = 0; i < 9; i++){
+        agenda.contato[*total-1].cep[i];
+    }
 }
-
 int main(int argc, char const *argv[]){
     int total = 0, opcao = 0;
 
