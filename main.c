@@ -88,7 +88,8 @@ void mostrarContatos(int *total){
             printf("=========== CONTATO %i ===========\n", (c+1));
             printf("Nome: %s", agenda.contato[c].nome);
             printf("Cidade: %s", agenda.contato[c].cidade);
-            printf("CEP: %i\n", agenda.contato[c].cep);
+            printf("CEP: ", agenda.contato[c].cep);
+            printarCep(c);
             printf("Estado: %s", agenda.contato[c].estado);
             printf("Endereço: %s", agenda.contato[c].endereco);
             printf("Telefone: %s", agenda.contato[c].telefone);
@@ -107,10 +108,18 @@ void mostrarContatos(int *total){
 
 }
 
-void printarCep(int total){
-    aux = 0;
-    agenda.contato[total].cep;
-    printf("%i");
+void printarCep(int c){
+    
+    int cep = agenda.contato[c].cep;
+    int aux = cep - ( (cep/10000000) * 10000000 );
+    int aux2 = aux - (aux/1000000) * 1000000;
+    int aux3 = aux2 - (aux2/100000) * 100000;
+    int aux4 = aux3 - (aux3/10000) * 10000;
+    int aux5 = aux4 - (aux4/1000) * 1000;
+
+    printf("%i", (int)cep/1000);
+    printf("-");
+    printf("%i\n", aux5);
     //inutilizada, desenvolvendo a lógica no teste c
 }
 
