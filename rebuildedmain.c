@@ -12,11 +12,13 @@
 //TAMMAX_ESCOLHA é uma pseucostante para tamanhos char, para opções de sim ou não.
 #define TAMMAX_TIPOEND 8
 //TAMMAX_TIPOEND é uma pseucostante para o tipo de endereço.
-
+#define TAMMAX_ENDERECO 50
+#define TAMMAX_TEL 13
+#define TAMMAX_TIPOCONT 14
 
 struct st_pessoa{
-    char nome[TAMMAX_NOME], tipoEndereco[TAMMAX_TIPOEND];
-    int ehFixo;
+    char nome[TAMMAX_NOME], tipoEndereco[TAMMAX_TIPOEND], endereco[TAMMAX_ENDERECO], telefone[TAMMAX_TEL], tipoContato[TAMMAX_TIPOCONT];
+    int ehFixo, numCasa;
 };
 
 struct st_agenda{
@@ -25,20 +27,46 @@ struct st_agenda{
 
 void selecionarTipoEnd(int tipoEndNum, int total){
     switch (tipoEndNum){
+        case 1:
+            strcpy(agenda.contato[total].tipoEndereco, "Alameda");
+            break;
+        case 2: 
+            strcpy(agenda.contato[total].tipoEndereco, "Avenida");
+            break;
+        case 3: 
+            strcpy(agenda.contato[total].tipoEndereco, "Praça");
+            break;
+        case 4: 
+            strcpy(agenda.contato[total].tipoEndereco, "Rua");
+            break;
+        case 5: 
+            strcpy(agenda.contato[total].tipoEndereco, "Travessa");
+            break;
+        default:
+            break;
+        }
+}
+
+
+void selecionarTipoCont(int tipoContNum, int total){
+        switch (tipoContNum){
     case 1:
-        strcpy(agenda.contato[total].tipoEndereco, "Alameda");
+        strcpy(agenda.contato[total].tipoContato, "Celular");
         break;
     case 2: 
-        strcpy(agenda.contato[total].tipoEndereco, "Avenida");
+        strcpy(agenda.contato[total].tipoContato, "Comercial");
         break;
     case 3: 
-        strcpy(agenda.contato[total].tipoEndereco, "Praça");
+        strcpy(agenda.contato[total].tipoContato, "Fixo");
         break;
     case 4: 
-        strcpy(agenda.contato[total].tipoEndereco, "Rua");
+        strcpy(agenda.contato[total].tipoContato, "Pessoal");
         break;
     case 5: 
-        strcpy(agenda.contato[total].tipoEndereco, "Travessa");
+        strcpy(agenda.contato[total].tipoContato, "Fax");
+        break;
+    case 6: 
+        strcpy(agenda.contato[total].tipoContato, "Personalizado");
         break;
     default:
         break;
@@ -46,7 +74,7 @@ void selecionarTipoEnd(int tipoEndNum, int total){
 }
 
 int lerContatos(int *total){
-    int parar = FALSE, tipoEndNum;
+    int parar = FALSE, tipoEndNum, tipoContNum;
     char opcao[TAMMAX_ESCOLHA];
 
     while (parar != TRUE){
@@ -67,9 +95,41 @@ int lerContatos(int *total){
             if( (tipoEndNum > 5) || (tipoEndNum < 0) ){
                 printf("Fora de alcance! Digite novamente.\n");
             }
-
         }while( (tipoEndNum > 5) || (tipoEndNum < 0) );
+
+
         selecionarTipoEnd(tipoEndNum, *total);
+
+        printf("Digite seu endereço: ");
+        getchar();
+        fgets(agenda.contato[*total].endereco, TAMMAX_ENDERECO-1, stdin);
+        agenda.contato[*total].endereco[strcspn(agenda.contato[*total].endereco, "\n")] = 0;
+
+        printf("Digite o número da casa: ");
+        scanf("%i", &agenda.contato[*total].numCasa);
+
+        printf("Digite o número do telefone: ");
+        getchar();
+        fgets(agenda.contato[*total].telefone, TAMMAX_TEL-1, stdin);
+        agenda.contato[*total].telefone[strcspn(agenda.contato[*total].telefone, "\n")] = 0;
+
+        printf("[1] Celular \n");
+        printf("[2] Comercial \n");
+        printf("[3] Fixo \n");
+        printf("[4] Pessoal \n");
+        printf("[5] Fax \n");
+        printf("[6] Personalizado \n");
+        printf("Digite o tipo do contato: ");
+
+        do{
+            scanf("%i", &tipoContNum);
+            if( (tipoContNum > 6) || (tipoContNum < 0) ){
+                printf("Fora de alcance! Digite novamente.\n");
+            }
+        }while( (tipoContNum > 6) || (tipoContNum < 0) );
+
+        selecionarTipoCont(tipoContNum, *total);
+
 
         printf("Deseja adicionar mais alguém? (S/N): \n");
         getchar();
@@ -114,6 +174,27 @@ void modificarContato(int *total){
 }
 
 
+void printarTel(char telefone[TAMMAX_TEL]){
+    char ddd[4];
+    char telpp[8];     // A cadeia de caracteres 'telpp' refere-se aos quatro primeiros dígitos do número de telefone.
+    char telsp[8];     // A cadeia de caracteres 'telsp' refere-se aos quatro últimos dígitos do número de telefone.
+    char pref[2];
+
+    strncpy(ddd,&telefone[0],2);
+    strncpy(pref,&telefone[2],1);
+    strncpy(telpp,&telefone[3],5);
+    strncpy(telsp,&telefone[7],5);
+
+    ddd[2] = '\0';
+    pref[1] = '\0';
+    telpp[4] = '\0';
+    telsp[4] = '\0';
+
+    printf("Telefone: (%s) %s %s-%s\n ", ddd, pref, telpp, telsp);
+
+}
+
+
 
 void mostrarContatos(int total){
     if (total == 0){
@@ -124,7 +205,9 @@ void mostrarContatos(int total){
         for (int c = 0; c < total; c++){
             printf("\n=========== CONTATO %i ===========\n", (c+1));
             printf("Nome: %s\n", agenda.contato[c].nome);
-            printf("Tipo do Endereço: %s\n", agenda.contato[c].tipoEndereco);
+            printf("Endereço: %s %s, nº %i\n", agenda.contato[c].tipoEndereco, agenda.contato[c].endereco, agenda.contato[c].numCasa);
+            printarTel(agenda.contato[c].telefone);
+            printf("Tipo do Contato: %s\n", agenda.contato[c].tipoContato);
 
             printf("\n");
         }
@@ -146,18 +229,14 @@ int main(int argc, char const *argv[]){
         printf("\nEscolha a opção: ");
         scanf("%i", &opcao);
 
-        system("clear");
-
         switch (opcao){
         case 1:
             mostrarContatos(totalContatos);
             break;
         case 2:
             lerContatos(&totalContatos);
-            system("clear");
             break;
         case 3:
-            system("clear");
             break;
         case 4:
             printf("Saindo do Programa...\n");
