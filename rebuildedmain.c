@@ -5,7 +5,8 @@
 
 #define TRUE 1
 #define FALSE 0
-#define TAMMAX_AGENDA 100
+
+#define TAMMAX_AGENDA 5
 //TAMMAX_AGENDA é uma pseucostante para número máximo de contatos na agenda.
 #define TAMMAX_NOME 50
 #define TAMMAX_ESCOLHA 2
@@ -15,10 +16,17 @@
 #define TAMMAX_ENDERECO 50
 #define TAMMAX_TEL 13
 #define TAMMAX_TIPOCONT 14
+#define TAMMAX_EMAIL 50
+#define TAMMAX_SM 20
+//TAMMAX_SM é uma pseucostante para o nome de usuário rede social *(SM - Social Media)*.
+#define TAMMAX_TIPOSM 15
+//TAMMAX_TIPOSM é uma pseucostante para o tipo de rede social *(SM - Social Media)*.
+
 
 struct st_pessoa{
     char nome[TAMMAX_NOME], tipoEndereco[TAMMAX_TIPOEND], endereco[TAMMAX_ENDERECO], telefone[TAMMAX_TEL], tipoContato[TAMMAX_TIPOCONT];
-    int ehFixo, numCasa;
+    char email[TAMMAX_EMAIL], redeSocial[TAMMAX_SM], tipoRedeSocial[TAMMAX_TIPOSM];
+    int numCasa;
 };
 
 struct st_agenda{
@@ -47,7 +55,6 @@ void selecionarTipoEnd(int tipoEndNum, int total){
         }
 }
 
-
 void selecionarTipoCont(int tipoContNum, int total){
         switch (tipoContNum){
     case 1:
@@ -73,46 +80,148 @@ void selecionarTipoCont(int tipoContNum, int total){
     }
 }
 
+void selecionarTipoSM(int tipoRedeSocial, int total){
+        switch (tipoRedeSocial){
+    case 1:
+        strcpy(agenda.contato[total].tipoRedeSocial, "Twitter");
+        break;
+    case 2: 
+        strcpy(agenda.contato[total].tipoRedeSocial, "Facebook");
+        break;
+    case 3: 
+        strcpy(agenda.contato[total].tipoRedeSocial, "Instagram");
+        break;
+    case 4: 
+        strcpy(agenda.contato[total].tipoRedeSocial, "GitHub");
+        break;
+    case 5: 
+        strcpy(agenda.contato[total].tipoRedeSocial, "LinkedIn");
+        break;
+    default:
+        break;
+    }
+}
+
+void lerEmail(int total){
+    int temArroba = FALSE, temPonto = FALSE, ehValido = FALSE;
+    int tamanhoEmail;
+
+    char email[TAMMAX_EMAIL];
+
+    while( ehValido == FALSE ){
+        printf("Digite seu e-mail: ");
+        lerFormatStr(email, TAMMAX_EMAIL);
+        tamanhoEmail = strlen(email);
+        
+        for (int i = 0; i <= tamanhoEmail; i++){
+            if (email[i] == '@'){
+                if ( (email[i+1] != '\0') && (i != 0) ){
+                    temArroba = TRUE;
+                }
+            }
+            if (email[i] == '.'){
+                if ( (email[i+1] != '\0') && (i != 0) ){
+                    temPonto = TRUE;
+                }
+            }
+        }
+
+        if ( (temArroba == TRUE) && (temPonto == TRUE) ){
+            ehValido = TRUE;
+            strcpy(agenda.contato[total].email, email);
+        }else{
+            printf("E-mail inválido!\n");
+        }
+        /* 
+            A função realiza as seguintes ações:
+            Percorre todos os caracteres do e-mail, buscando um '@'
+            Caso ache, realiza outra verificação: Se o @ é o úlitmo caracter (que não deve ser)
+            E se o @ é o primeiro caracter.
+
+            Obedecendo assim, a lei <nome>@<domínio>
+
+            Caso todas as condições forem verdade, ele copia a variável temporária 'email'
+            para o atributo email da struct contato, e finaliza a função com o return 0.
+
+            Caso contrário, ele entrará loop até as condições serem verdade.
+        */
+    }
+
+}
+
+int lerSelecao(){
+    int var;
+    do{
+        scanf("%i", &var);
+        if( (var > 5) || (var < 0) ){
+            printf("Fora de alcance! Digite novamente.\n");
+        }
+    }while( (var > 5) || (var < 0) );
+
+    return var;
+}
+
+void lerFormatStr(char var[], int tamanho){
+    fgets(var, tamanho-1, stdin);
+    var[strcspn(var, "\n")] = 0;
+
+    while (strlen(var) > tamanho-1){
+        printf("Tamanho excedido!\nDigite novamente: ");
+        fgets(var, tamanho-1, stdin);
+        var[strcspn(var, "\n")] = 0;
+    }
+
+    /* 
+    A função acima realiza a leitura de uma string, e
+    a remoção do '\n' ao final desta.
+    */
+}
+
 int lerContatos(int *total){
-    int parar = FALSE, tipoEndNum, tipoContNum;
+    int parar = FALSE, ehValido = FALSE, tipoEndNum, tipoContNum, tipoRedeSocial;
     char opcao[TAMMAX_ESCOLHA];
 
     while (parar != TRUE){
+
+        int i = *total;
+        // LEITURA DO NOME
         printf("Digite seu nome: ");
         getchar();
-        fgets(agenda.contato[*total].nome, TAMMAX_NOME-1, stdin);
-        agenda.contato[*total].nome[strcspn(agenda.contato[*total].nome, "\n")] = 0;
+        lerFormatStr(agenda.contato[i].nome, TAMMAX_NOME);
 
+        // LEITURA DO TIPO DO ENDEREÇO
         printf("[1] Alameda \n");
         printf("[2] Avenida \n");
         printf("[3] Praça \n");
         printf("[4] Rua \n");
         printf("[5] Travessa \n");
         printf("Digite o tipo do endereço: ");
+        tipoEndNum = lerSelecao();
+        selecionarTipoEnd(tipoEndNum, i);
 
-        do{
-            scanf("%i", &tipoEndNum);
-            if( (tipoEndNum > 5) || (tipoEndNum < 0) ){
-                printf("Fora de alcance! Digite novamente.\n");
-            }
-        }while( (tipoEndNum > 5) || (tipoEndNum < 0) );
-
-
-        selecionarTipoEnd(tipoEndNum, *total);
-
+        // LEITURA DO ENDEREÇO
         printf("Digite seu endereço: ");
         getchar();
-        fgets(agenda.contato[*total].endereco, TAMMAX_ENDERECO-1, stdin);
-        agenda.contato[*total].endereco[strcspn(agenda.contato[*total].endereco, "\n")] = 0;
+        lerFormatStr(agenda.contato[i].endereco, TAMMAX_ENDERECO);
 
+        // LEITURA DO NÚMERO DA CASA
         printf("Digite o número da casa: ");
-        scanf("%i", &agenda.contato[*total].numCasa);
+        scanf("%i", &agenda.contato[i].numCasa);
 
+        //LEITURA DO NÚMERO DE TELEFONE
         printf("Digite o número do telefone: ");
         getchar();
-        fgets(agenda.contato[*total].telefone, TAMMAX_TEL-1, stdin);
-        agenda.contato[*total].telefone[strcspn(agenda.contato[*total].telefone, "\n")] = 0;
+        lerFormatStr(agenda.contato[i].telefone, TAMMAX_TEL);
+        while ( ehValido == FALSE ){
+            if (strlen(agenda.contato[i].telefone) == TAMMAX_TEL-2){
+                ehValido = TRUE;
+            }else{
+                printf("O Telefone tem que ter 11 dígitos.\nDigite novamente: ");
+                lerFormatStr(agenda.contato[i].telefone, TAMMAX_TEL);
+            }
+        }
 
+        //LEITURA DO TIPO DE CONTATO
         printf("[1] Celular \n");
         printf("[2] Comercial \n");
         printf("[3] Fixo \n");
@@ -121,18 +230,29 @@ int lerContatos(int *total){
         printf("[6] Personalizado \n");
         printf("Digite o tipo do contato: ");
 
-        do{
-            scanf("%i", &tipoContNum);
-            if( (tipoContNum > 6) || (tipoContNum < 0) ){
-                printf("Fora de alcance! Digite novamente.\n");
-            }
-        }while( (tipoContNum > 6) || (tipoContNum < 0) );
-
-        selecionarTipoCont(tipoContNum, *total);
-
-
-        printf("Deseja adicionar mais alguém? (S/N): \n");
+        tipoContNum = lerSelecao();
+        selecionarTipoCont(tipoContNum, i);
         getchar();
+
+        // LEITURA DO E-MAIL
+        lerEmail(*total);
+
+        //LEITURA DA NOME DE USUÁRIO DA REDE SOCIAL
+        printf("[1] Twitter \n");
+        printf("[2] Facebook \n");
+        printf("[3] Instagram \n");
+        printf("[4] GitHub \n");
+        printf("[5] LinkedIn \n");
+        printf("Digite o tipo da rede social: ");
+
+        tipoRedeSocial = lerSelecao();
+        selecionarTipoSM(tipoRedeSocial, i);
+
+        printf("Digite o seu nome de usuário do %s: ", agenda.contato[*total].tipoRedeSocial);
+        getchar();
+        lerFormatStr(agenda.contato[i].redeSocial, TAMMAX_SM);
+
+        printf("Deseja adicionar mais alguém? (S/N): ");
         scanf("%c", &opcao);
         if (toupper(opcao[0]) == 'N'){
             parar = TRUE;
@@ -173,30 +293,22 @@ void modificarContato(int *total){
     return (*total)--;
 }
 
-
 void printarTel(char telefone[TAMMAX_TEL]){
-    char ddd[4];
-    char telpp[8];     // A cadeia de caracteres 'telpp' refere-se aos quatro primeiros dígitos do número de telefone.
-    char telsp[8];     // A cadeia de caracteres 'telsp' refere-se aos quatro últimos dígitos do número de telefone.
-    char pref[2];
-
+    char ddd[4], pref[2], telpp[8], telsp[8];
+    // A cadeia de caracteres 'telpp' refere-se aos quatro primeiros dígitos do número de telefone.
+    // A cadeia de caracteres 'telsp' refere-se aos quatro últimos dígitos do número de telefone.
+    
     strncpy(ddd,&telefone[0],2);
     strncpy(pref,&telefone[2],1);
     strncpy(telpp,&telefone[3],5);
     strncpy(telsp,&telefone[7],5);
+    telsp[4] = telpp[4] = pref[1] = ddd[2] = '\0';
 
-    ddd[2] = '\0';
-    pref[1] = '\0';
-    telpp[4] = '\0';
-    telsp[4] = '\0';
-
-    printf("Telefone: (%s) %s %s-%s\n ", ddd, pref, telpp, telsp);
+    printf("Telefone: (%s) %s %s-%s\n", ddd, pref, telpp, telsp);
 
 }
 
-
-
-void mostrarContatos(int total){
+void listarContatos(int total){
     if (total == 0){
         printf("Ainda não há contatos registrados!\n");
         sleep(1);
@@ -208,6 +320,8 @@ void mostrarContatos(int total){
             printf("Endereço: %s %s, nº %i\n", agenda.contato[c].tipoEndereco, agenda.contato[c].endereco, agenda.contato[c].numCasa);
             printarTel(agenda.contato[c].telefone);
             printf("Tipo do Contato: %s\n", agenda.contato[c].tipoContato);
+            printf("Email: %s\n", agenda.contato[c].email);
+            printf("%s: %s\n", agenda.contato[c].tipoRedeSocial, agenda.contato[c].redeSocial);
 
             printf("\n");
         }
@@ -231,7 +345,7 @@ int main(int argc, char const *argv[]){
 
         switch (opcao){
         case 1:
-            mostrarContatos(totalContatos);
+            listarContatos(totalContatos);
             break;
         case 2:
             lerContatos(&totalContatos);
