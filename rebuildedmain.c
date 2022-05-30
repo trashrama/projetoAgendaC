@@ -9,7 +9,6 @@
 #define TAMMAX_AGENDA 5
 //TAMMAX_AGENDA é uma pseucostante para número máximo de contatos na agenda.
 #define TAMMAX_NOME 50
-#define TAMMAX_ESCOLHA 2
 //TAMMAX_ESCOLHA é uma pseucostante para tamanhos char, para opções de sim ou não.
 #define TAMMAX_TIPOEND 8
 //TAMMAX_TIPOEND é uma pseucostante para o tipo de endereço.
@@ -21,11 +20,14 @@
 //TAMMAX_SM é uma pseucostante para o nome de usuário rede social *(SM - Social Media)*.
 #define TAMMAX_TIPOSM 15
 //TAMMAX_TIPOSM é uma pseucostante para o tipo de rede social *(SM - Social Media)*.
-
+#define TAMMAX_CEP 10
+#define TAMMAX_NOTA 200
 
 struct st_pessoa{
-    char nome[TAMMAX_NOME], tipoEndereco[TAMMAX_TIPOEND], endereco[TAMMAX_ENDERECO], telefone[TAMMAX_TEL], tipoContato[TAMMAX_TIPOCONT];
-    char email[TAMMAX_EMAIL], redeSocial[TAMMAX_SM], tipoRedeSocial[TAMMAX_TIPOSM];
+    char nome[TAMMAX_NOME], tipoEndereco[TAMMAX_TIPOEND], endereco[TAMMAX_ENDERECO], cep[TAMMAX_CEP], telefone[TAMMAX_TEL], tipoContato[TAMMAX_TIPOCONT];
+    char nota[TAMMAX_NOTA], email[TAMMAX_EMAIL], redeSocial[TAMMAX_SM], tipoRedeSocial[TAMMAX_TIPOSM];
+    //enum tipoEndereco{Alameda = 1, Avenida, Praça, Rua};
+
     int numCasa;
 };
 
@@ -177,9 +179,30 @@ void lerFormatStr(char var[], int tamanho){
     */
 }
 
+void lerOpcao(char* opcao){
+    
+    /*
+    
+    A função lê a opção em uma variável auxiliar,
+    e depois a transfere para o valor do ponteiro de opção.
+    
+    */
+    char buffer;
+    scanf("%c", &buffer);
+    buffer = toupper(buffer);
+
+    while ( (buffer != 'S') && (buffer != 'N') ){
+        printf("Opção Inválida!\nDigite novamente: ");
+        getchar();
+        scanf("%c", &buffer);
+        buffer = toupper(buffer);
+    }
+    *opcao = buffer;
+}
+
 int lerContatos(int *total){
     int parar = FALSE, ehValido = FALSE, tipoEndNum, tipoContNum, tipoRedeSocial;
-    char opcao[TAMMAX_ESCOLHA];
+    char opcao;
 
     while (parar != TRUE){
 
@@ -204,8 +227,13 @@ int lerContatos(int *total){
         getchar();
         lerFormatStr(agenda.contato[i].endereco, TAMMAX_ENDERECO);
 
+        // LEITURA DO CEP
+        printf("Digite seu CEP: ");
+        lerFormatStr(agenda.contato[i].cep, TAMMAX_CEP);
+
         // LEITURA DO NÚMERO DA CASA
         printf("Digite o número da casa: ");
+        getchar();
         scanf("%i", &agenda.contato[i].numCasa);
 
         //LEITURA DO NÚMERO DE TELEFONE
@@ -237,7 +265,7 @@ int lerContatos(int *total){
         // LEITURA DO E-MAIL
         lerEmail(*total);
 
-        //LEITURA DA NOME DE USUÁRIO DA REDE SOCIAL
+        // LEITURA DA NOME DE USUÁRIO DA REDE SOCIAL
         printf("[1] Twitter \n");
         printf("[2] Facebook \n");
         printf("[3] Instagram \n");
@@ -252,9 +280,22 @@ int lerContatos(int *total){
         getchar();
         lerFormatStr(agenda.contato[i].redeSocial, TAMMAX_SM);
 
+        // LEITURA DA NOTA
+        printf("Deseja adicionar uma nota? (S/N): ");
+        lerOpcao(&opcao);
+
+        if (opcao == 'N'){
+            strcpy(agenda.contato[i].nota, " ");
+        }else{
+            printf("Digite uma nota: \n");
+            lerFormatStr(agenda.contato[i].nota, TAMMAX_NOTA);
+        }
+
+        // LEITURA DE CONTINUAÇÃO
         printf("Deseja adicionar mais alguém? (S/N): ");
-        scanf("%c", &opcao);
-        if (toupper(opcao[0]) == 'N'){
+        getchar();
+        lerOpcao(&opcao);
+        if (opcao == 'N'){
             parar = TRUE;
         }
         getchar();
@@ -304,7 +345,17 @@ void printarTel(char telefone[TAMMAX_TEL]){
     strncpy(telsp,&telefone[7],5);
     telsp[4] = telpp[4] = pref[1] = ddd[2] = '\0';
 
-    printf("Telefone: (%s) %s %s-%s\n", ddd, pref, telpp, telsp);
+    printf("Telefone: (%s) %s. %s-%s\n", ddd, pref, telpp, telsp);
+
+}
+
+void printarCep(char cep[]){
+
+    char cepPp[6], cepSp[5];
+    strncpy(cepPp, &cep[0],5);
+    strncpy(cepSp, &cep[5],3);
+    cepPp[5] = cepSp[3] = '\0';
+    printf("CEP: %s-%s\n", cepPp, cepSp);
 
 }
 
@@ -318,11 +369,12 @@ void listarContatos(int total){
             printf("\n=========== CONTATO %i ===========\n", (c+1));
             printf("Nome: %s\n", agenda.contato[c].nome);
             printf("Endereço: %s %s, nº %i\n", agenda.contato[c].tipoEndereco, agenda.contato[c].endereco, agenda.contato[c].numCasa);
+            printarCep(agenda.contato[c].cep);
             printarTel(agenda.contato[c].telefone);
             printf("Tipo do Contato: %s\n", agenda.contato[c].tipoContato);
             printf("Email: %s\n", agenda.contato[c].email);
             printf("%s: %s\n", agenda.contato[c].tipoRedeSocial, agenda.contato[c].redeSocial);
-
+            printf("Nota: %s\n", agenda.contato[c].nota);
             printf("\n");
         }
 
