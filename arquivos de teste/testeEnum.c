@@ -14,7 +14,6 @@ struct st_agenda{
 int main(int argc, char const *argv[]){
 
     scanf("%i", &agenda.contato[0].tipoEndereco);
-
     switch (agenda.contato[0].tipoEndereco){
     case Alameda:
         printf("Alameda");
