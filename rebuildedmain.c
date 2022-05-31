@@ -52,7 +52,7 @@ void deixarAmarelo() {
   printf("\033[1;33m");
 }
 void deixarAzul () {
-  printf("\033[1;34m");
+  printf("\033[0;34m");
 }
 void deixarRoxo () {
   printf("\033[1;35m");
@@ -353,7 +353,7 @@ void lerContatos(int *total){
 
 }
 
-int excluirContato(int *total){
+void excluirContato(int *total){
     int pos;
 
     printf("Digite o número do contato que deseja excluir: \n");
@@ -365,7 +365,6 @@ int excluirContato(int *total){
         agenda.contato[i] = agenda.contato[i+1];
     }
 
-    return (*total)--;
 }
 
 void modificarContato(int *total){
@@ -378,7 +377,7 @@ void modificarContato(int *total){
     
     scanf("%i", &pos);
 
-    return (*total)--;
+    (*total)--;
 }
 
 void listarContatos(int total){
@@ -402,10 +401,6 @@ void listarContatos(int total){
             printf(": %s\n", agenda.contato[c].redeSocial);
             printf("Nota: %s\n", agenda.contato[c].nota);
             printf("\n");
-            //  printf("Tipo do Contato: %s\n", agenda.contato[c].tipoContato);
-            //  printf("%s: %s\n", agenda.contato[c].tipoRedeSocial, agenda.contato[c].redeSocial);
-            //  printf("Endereço: %s %s, nº %i\n", agenda.contato[c].tipoEndereco, agenda.contato[c].endereco, agenda.contato[c].numCasa);
-
         }
 
     }
@@ -416,13 +411,19 @@ int main(int argc, char const *argv[]){
 
     int opcao = 0, totalContatos = 0; /* A variável 'totalContatos' será armazenada em um arquivo
                                        que servirá de contador, ao ler o arquivo.*/
-    while(opcao != 4){
-        printf("\033*********** AGENDA ***********\n");
+    while(opcao != 6){
+        deixarCiano();
+        printf("*********** AGENDA ***********\n");
+        deixarRoxo();
         printf("1. Ver Agenda\n");
         printf("2. Adicionar Contatos\n");
-        printf("3. Excluir Contatos\n");
-        printf("4. Sair\n");
+        printf("3. Consultar Contato\n");
+        printf("4. Editar Contato\n");
+        printf("5. Excluir Contato\n");
+        printf("6. Sair\n");
+        deixarAzul();
         printf("\nEscolha a opção: ");
+        resetarCores();
         scanf("%i", &opcao);
 
         switch (opcao){
@@ -434,7 +435,7 @@ int main(int argc, char const *argv[]){
             break;
         case 3:
             break;
-        case 4:
+        case 6:
             printf("Saindo do Programa...\n");
             break;
         default:
