@@ -22,7 +22,7 @@
 //TAMMAX_RS é uma pseucostante para o nome de usuário rede social.
 #define TAMMAX_RS 20
 #define TAMMAX_CEP 9
-#define TAMMAX_NOTA 20
+#define TAMMAX_NOTA 200
 
 struct st_pessoa{
     char nome[TAMMAX_NOME], endereco[TAMMAX_ENDERECO], cep[TAMMAX_CEP], telefone[TAMMAX_TEL];
@@ -102,7 +102,7 @@ void printarTel(char telefone[TAMMAX_TEL]){
     strncpy(telsp,&telefone[7],5);
     telsp[4] = telpp[4] = pref[1] = ddd[2] = '\0';
 
-    printf("(%s) %s. %s-%s\n", ddd, pref, telpp, telsp);
+    printf("Telefone: (%s) %s. %s-%s\n", ddd, pref, telpp, telsp);
 
 }
 void printarCep(char cep[]){
@@ -322,17 +322,15 @@ void excluirContato(int *total){
 
 }
 
-void editarContato(int *total){
+void modificarContato(int *total){
     int pos;
     printf("Digite o número do contato que deseja alterar: \n");
 
     for (int i = 0; i < *total; i++){
         printf("[%i] Nome: %s\n", i, agenda.contato[i].nome);
     }
+    
     scanf("%i", &pos);
-    printf("Qual opção deseja editar?");
-
-
 
     (*total)--;
 }
@@ -343,19 +341,7 @@ void listarContatos(int total){
         sleep(1);
     }else{
         printf("\n=========== DADOS ===========\n");
-        for (int c = 0; c < total; c++){
-            printf("\n=========== CONTATO %i ===========\n", (c+1));
-            printf("Nome: %s\n", agenda.contato[c].nome);
-            printf("Endereço: %s %s, nº %i\n", printarEnumerados(1, agenda.contato[c].tipoEndereco), agenda.contato[c].endereco, agenda.contato[c].numCasa);
-            printarCep(agenda.contato[c].cep);
-            printf("Telefone: ");
-            printarTel(agenda.contato[c].telefone);
-            printf("\nTipo do Contato: %s", printarEnumerados(2, agenda.contato[c].tipoContato));
-            printf("\nEmail: %s\n", agenda.contato[c].email);
-            printf("%s: %s\n", printarEnumerados(3, agenda.contato[c].tipoRedeSocial), agenda.contato[c].redeSocial);
-            printf("Nota: %s\n", agenda.contato[c].nota);
-            printf("\n");
-        }
+        char* colunas = {"Nome", }
 
     }
 
@@ -388,7 +374,6 @@ int main(int argc, char const *argv[]){
             lerContatos(&totalContatos);
             break;
         case 3:
-            editarContato(totalContatos);
             break;
         case 6:
             printf("Saindo do Programa...\n");
