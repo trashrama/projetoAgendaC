@@ -102,7 +102,8 @@ void printarNome(int temEspaco, char *nome){
                 finalPrNome = i-1;
                 // esse -1 e mais +1 na funçao seguinte eh pq
                 // fiz i-1 pra pegar a posiçao anterior ao espaço
-                strncpy(primeiroNome, &nome[0], finalPrNome+1);
+                strncpy(primeiroNome, &nome[0], finalPrNome);
+                
                 primeiroNome[finalPrNome+1] = '\0';
                 // e adicionei 1 pois a funçao strncpy usa o ultimo caracter de delimitador
                 break;
@@ -116,11 +117,13 @@ void printarNome(int temEspaco, char *nome){
                 comecoSobrenome = i+1;
                 strncpy(ultimoSobrenome, &nome[comecoSobrenome], TAM_NOME-1);
                 ultimoSobrenome[TAM_NOME] = '\0';
+
                 
                 break;
             }
         }
-            printf("%s %s\n", primeiroNome, ultimoSobrenome);
+
+        printf("%s %s\n", primeiroNome, ultimoSobrenome);
 
     }else{
         printf("%s", nome);
@@ -129,7 +132,7 @@ void printarNome(int temEspaco, char *nome){
 }
 int main(int argc, char const *argv[]){
 
-    char nome[] = {" elto JOHN Da silva"};
+    char nome[] = {"lua moreira da silva"};
     char primeiroNome[20];
     char ultimoSobrenome[20];
     int TAM_NOME = strlen(nome);
