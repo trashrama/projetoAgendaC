@@ -7,7 +7,7 @@
 #define FALSE 0
 
 //NUMOPCOES_END é uma pseuconstante para o número de opções enumeradas do endereço.
-#define NUMOPCOES_END 5
+#define NUMOPCOES_END 6
 //NUMOPCOES_CTT é uma pseuconstante para o número de opções enumeradas do contato.
 #define NUMOPCOES_CTT 6
 //NUMOPCOES_RS é uma pseuconstante para o número de opções enumeradas das redes sociais.
@@ -91,10 +91,17 @@ char* printarEnumerados(int opcao, int pos){
         break;
     }
 }
-void printarTel(char telefone[TAMMAX_TEL]){
+
+char* printarTel(char telefone[TAMMAX_TEL]){
     char ddd[4], pref[2], telpp[8], telsp[8];
+
     // A cadeia de caracteres 'telpp' refere-se aos quatro primeiros dígitos do número de telefone.
     // A cadeia de caracteres 'telsp' refere-se aos quatro últimos dígitos do número de telefone.
+    
+    char* telefoneFormatado = malloc(18);
+
+    //Uso do malloc(18) aqui foi necessário pois:
+    //Precisava retornar uma string (ou uma array de char) de 18 caracteres (17 + \0).
     
     strncpy(ddd,&telefone[0],2);
     strncpy(pref,&telefone[2],1);
@@ -102,16 +109,27 @@ void printarTel(char telefone[TAMMAX_TEL]){
     strncpy(telsp,&telefone[7],5);
     telsp[4] = telpp[4] = pref[1] = ddd[2] = '\0';
 
-    printf("(%s) %s. %s-%s\n", ddd, pref, telpp, telsp);
-
+   
+    sprintf(telefoneFormatado, "(%s) %s. %s-%s", ddd, pref, telpp, telsp);
+    
+    return telefoneFormatado;
 }
-void printarCep(char cep[]){
+
+char* printarCep(char cep[]){
 
     char cepPp[6], cepSp[5];
+    char* cepFormatado = malloc(10);
     strncpy(cepPp, &cep[0],5);
     strncpy(cepSp, &cep[5],3);
     cepPp[5] = cepSp[3] = '\0';
-    printf("CEP: %s-%s\n", cepPp, cepSp);
+
+     
+    //Uso do malloc(10) aqui foi necessário pois:
+    //Precisava retornar uma string (ou uma array de char) de 10 caracteres (9 + \0).
+    
+
+    sprintf(cepFormatado, "%s-%s", cepPp, cepSp);
+    return cepFormatado;
 
 }
 
@@ -233,6 +251,8 @@ void lerContatos(int *total){
         printf("[3] Praça \n");
         printf("[4] Rua \n");
         printf("[5] Travessa \n");
+        printf("[6] Rodovia \n");
+
         printf("Digite o tipo do endereço: ");
         agenda.contato[i].tipoEndereco = lerSelecao(NUMOPCOES_END);
         
@@ -347,11 +367,10 @@ void listarContatos(int total){
             printf("\n=========== CONTATO %i ===========\n", (c+1));
             printf("Nome: %s\n", agenda.contato[c].nome);
             printf("Endereço: %s %s, nº %i\n", printarEnumerados(1, agenda.contato[c].tipoEndereco), agenda.contato[c].endereco, agenda.contato[c].numCasa);
-            printarCep(agenda.contato[c].cep);
-            printf("Telefone: ");
-            printarTel(agenda.contato[c].telefone);
-            printf("\nTipo do Contato: %s", printarEnumerados(2, agenda.contato[c].tipoContato));
-            printf("\nEmail: %s\n", agenda.contato[c].email);
+            printf("CEP: %s\n", printarCep(agenda.contato[c].cep));
+            printf("Telefone: %s\n", printarTel(agenda.contato[c].telefone));
+            printf("Tipo do Contato: %s\n", printarEnumerados(2, agenda.contato[c].tipoContato));
+            printf("Email: %s\n", agenda.contato[c].email);
             printf("%s: %s\n", printarEnumerados(3, agenda.contato[c].tipoRedeSocial), agenda.contato[c].redeSocial);
             printf("Nota: %s\n", agenda.contato[c].nota);
             printf("\n");
