@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <locale.h>
 #include <ctype.h>
 
 #define TRUE 1
@@ -15,14 +14,12 @@ void tirarEspacos(char *nome){
             nome[i] = nome[i+1];
         } 
     }
-
-    TAM_NOME = strlen(nome);
     
     //oq estou tentando fazer é uma funçao pra tirar o espaço de um ultimo caracter
     if (nome[TAM_NOME-1] == ' '){
         nome[TAM_NOME-1] = '\0';
     }
-        
+    
     //verificar se tem dois espaços
     for (int i = 0; i < TAM_NOME; i++){
         if ( (nome[i] == ' ') && (nome[i+1] == ' ') ){
@@ -95,50 +92,51 @@ int verificarEspacos(char *nome){
     return temEspaco;
 }
 void printarNome(int temEspaco, char *nome){
-    char primeiroNome[20], ultimoSobrenome[50];
+    char primeiroNome[20], ultimoSobrenome[20];
     int TAM_NOME = strlen(nome);
 
     if (temEspaco == TRUE){
         int finalPrNome = 0;
-        //pega o primeiro nome
         for (int i = 0; i < TAM_NOME; i++){
             if (nome[i] == ' '){
                 finalPrNome = i-1;
                 // esse -1 e mais +1 na funçao seguinte eh pq
                 // fiz i-1 pra pegar a posiçao anterior ao espaço
-                *primeiroNome = '\0';
-                strncpy(primeiroNome, &nome[0], finalPrNome+1);
-                                    
+                strncpy(primeiroNome, &nome[0], finalPrNome);
+                
+                primeiroNome[finalPrNome+1] = '\0';
                 // e adicionei 1 pois a funçao strncpy usa o ultimo caracter de delimitador
                 break;
             }
         }
-                
+        
         // pegar ultimo sobrenome
         int comecoSobrenome = 0;
-        for (int i = TAM_NOME-1; i > 0; i--){
+        for (int i = TAM_NOME; i > 0; i--){
             if (nome[i] == ' '){
                 comecoSobrenome = i+1;
-
-                *ultimoSobrenome= '\0';
                 strncpy(ultimoSobrenome, &nome[comecoSobrenome], TAM_NOME-1);
+                ultimoSobrenome[TAM_NOME] = '\0';
 
+                
                 break;
             }
         }
-            printf("%s %s\n", primeiroNome, ultimoSobrenome);
 
-        }else{
+        printf("%s %s\n", primeiroNome, ultimoSobrenome);
+
+    }else{
         printf("%s", nome);
     }
 
 }
-
-
 int main(int argc, char const *argv[]){
 
-    setlocale(LC_ALL,"");
-    char nome[] = {"Roberto de Almeida Façanha Júnior"};
+    char nome[] = {"lua moreira da silva"};
+    char primeiroNome[20];
+    char ultimoSobrenome[20];
+    int TAM_NOME = strlen(nome);
+
 
     tirarEspacos(nome);
     deixarMinusculo(nome);
@@ -147,10 +145,11 @@ int main(int argc, char const *argv[]){
 
     //1 e 32 da manha essa e foda viado neyma neyma neyma neyma piquezin dos cria
     int temEspaco = verificarEspacos(nome);
+
     printarNome(temEspaco, nome);
+    //pegar primeiro nome
     
     
     
     return 0;
 }
-
