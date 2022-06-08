@@ -132,7 +132,7 @@ void printarNome(int temEspaco, char *nome){
 }
 int main(int argc, char const *argv[]){
 
-    char nome[] = {"lua moreira da silva"};
+    char nome[] = {"roberto almeida FASSAnha da silva"};
     char primeiroNome[20];
     char ultimoSobrenome[20];
     int TAM_NOME = strlen(nome);

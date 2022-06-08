@@ -107,8 +107,7 @@ void printarNome(int temEspaco, char *nome){
                 // esse -1 e mais +1 na funçao seguinte eh pq
                 // fiz i-1 pra pegar a posiçao anterior ao espaço
                 *primeiroNome = '\0';
-                strncpy(primeiroNome, &nome[0], finalPrNome+1);
-                                    
+                strncpy(primeiroNome, &nome[0], finalPrNome+1);                   
                 // e adicionei 1 pois a funçao strncpy usa o ultimo caracter de delimitador
                 break;
             }
@@ -122,6 +121,7 @@ void printarNome(int temEspaco, char *nome){
 
                 *ultimoSobrenome= '\0';
                 strncpy(ultimoSobrenome, &nome[comecoSobrenome], TAM_NOME-1);
+                //printf("%i", strlen(ultimoSobrenome));
 
                 break;
             }
@@ -138,7 +138,7 @@ void printarNome(int temEspaco, char *nome){
 int main(int argc, char const *argv[]){
 
     setlocale(LC_ALL,"");
-    char nome[] = {"Roberto de Almeida Façanha Júnior"};
+    char nome[] = {"Roberto de Almeida Façanha"};
 
     tirarEspacos(nome);
     deixarMinusculo(nome);
