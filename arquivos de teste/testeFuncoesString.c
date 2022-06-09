@@ -7,32 +7,37 @@
 #define TRUE 1
 #define FALSE 0
 
+
 void tirarEspacos(char *nome){
     //tira o primeiro espaço e arruma as posições
     int TAM_NOME = strlen(nome);
-    if (nome[0] == ' '){
-        for (int i = 0; i < TAM_NOME; i++){
-            nome[i] = nome[i+1];
-        } 
-    }
-
-    TAM_NOME = strlen(nome);
+    char stringSem[TAM_NOME];
     
-    //oq estou tentando fazer é uma funçao pra tirar o espaço de um ultimo caracter
-    if (nome[TAM_NOME-1] == ' '){
-        nome[TAM_NOME-1] = '\0';
-    }
-        
-    //verificar se tem dois espaços
-    for (int i = 0; i < TAM_NOME; i++){
-        if ( (nome[i] == ' ') && (nome[i+1] == ' ') ){
-            for (int j = i; j < TAM_NOME; j++){
-                nome[j] = nome[j+1];
+    int contadorEspacos, j;
+    for (int i = 0; i < strlen(nome); i++){
+        if(nome[i] != ' '){
+            contadorEspacos = 0;
+            stringSem[j] = nome[i];
+            j++;
+            printf("%s\n", stringSem);
+        }else{
+            contadorEspacos++;
+            if (contadorEspacos == 1){
+                stringSem[j] = ' ';
+                j++;
             }
-        }  
+        }
     }
-
+        stringSem[j] = '\0';
+     
+    
+    strcpy(nome, stringSem);
+	
 }
+   
+  
+
+
 void deixarMinusculo(char *nome){
     int TAM_NOME = strlen(nome);
     for (int i = 0; i < TAM_NOME; i++){
@@ -95,7 +100,7 @@ int verificarEspacos(char *nome){
     return temEspaco;
 }
 void printarNome(int temEspaco, char *nome){
-    char primeiroNome[20], ultimoSobrenome[50];
+    char primeiroNome[20], ultimoSobrenome[20];
     int TAM_NOME = strlen(nome);
 
     if (temEspaco == TRUE){
@@ -103,11 +108,12 @@ void printarNome(int temEspaco, char *nome){
         //pega o primeiro nome
         for (int i = 0; i < TAM_NOME; i++){
             if (nome[i] == ' '){
-                finalPrNome = i-1;
+                finalPrNome = i;
                 // esse -1 e mais +1 na funçao seguinte eh pq
                 // fiz i-1 pra pegar a posiçao anterior ao espaço
-                *primeiroNome = '\0';
-                strncpy(primeiroNome, &nome[0], finalPrNome+1);                   
+                strncpy(primeiroNome, &nome[0], finalPrNome); 
+                primeiroNome[finalPrNome+1] = '\0';
+
                 // e adicionei 1 pois a funçao strncpy usa o ultimo caracter de delimitador
                 break;
             }
@@ -119,9 +125,8 @@ void printarNome(int temEspaco, char *nome){
             if (nome[i] == ' '){
                 comecoSobrenome = i+1;
 
-                *ultimoSobrenome= '\0';
                 strncpy(ultimoSobrenome, &nome[comecoSobrenome], TAM_NOME-1);
-                //printf("%i", strlen(ultimoSobrenome));
+                ultimoSobrenome[TAM_NOME] = '\0';
 
                 break;
             }
@@ -138,7 +143,7 @@ void printarNome(int temEspaco, char *nome){
 int main(int argc, char const *argv[]){
 
     setlocale(LC_ALL,"");
-    char nome[] = {"Roberto de Almeida Façanha"};
+    char nome[] = {" Roberto de Almeida                       Façanha Júnior"};
 
     tirarEspacos(nome);
     deixarMinusculo(nome);
