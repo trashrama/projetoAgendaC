@@ -41,7 +41,6 @@ struct st_agenda{
     struct st_pessoa aux;
 }agenda, aux;
 
-void enterParaContinuar();
 void limparTela();
 void deixarPreto ();
 void deixarVermelho ();
@@ -123,15 +122,6 @@ int main(int argc, char const *argv[]){
         }
     }
     return 0;
-}
-
-
-// FUNÇÃO PARA CONTINUAR A SEGUIR
-void enterParaContinuar(){
-    printf ("\n\nTecle ENTER para continuar...");
-    fflush (stdin);
-    getchar();
-    limparTela();
 }
 
 //FUNÇÃO PARA LIMPAR TELA
@@ -738,23 +728,36 @@ void lerContatos(int *total){
 
     ordenarPorNome(*total);
     salvarArquivo(*total);
-    limparTela();
+    //limparTela();
 
 }
+
 void excluirContato(int *total){
     int pos;
+    char opcao[2];
 
-    printf("Digite o número do contato que deseja excluir: \n");
-    scanf("%i", &pos);
-    pos = pos-1;
+    while (opcao[0] != 'S'){
+        for (int i = 0; i < *total; i++){
+            printf("[%i] Nome: %s\n", i+1, agenda.contato[i].nome);
+        }
+
+        printf("Digite o número do contato que deseja excluir: \n");
+        scanf("%i", &pos);
+        pos = pos-1;
+
+        printf("Deseja confirmar a exclusão de %s? (S/N): ", printarNome(agenda.contato[pos].nome));
+        getchar();
+        lerOpcao(&opcao);
+    }
 
     for (int i = pos; i < *total; i++){
         agenda.contato[i] = agenda.contato[i+1];
     }
 
     printf("Contato excluído!\n");
-    enterParaContinuar();
 
+    (*total)--;
+    salvarArquivo(*total);
 }
 void editarContato(int *total){
     
@@ -975,7 +978,6 @@ void listarContatos(int total){
         }
 
     }
-    enterParaContinuar();
 }
 void consultarContato(int total){
     char nomeConsultado[TAMMAX_NOME];
@@ -1002,7 +1004,6 @@ void consultarContato(int total){
             printf("Nome não encontrado.\n");
         }
 
-        enterParaContinuar();
     }
     
 }
