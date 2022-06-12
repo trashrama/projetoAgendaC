@@ -276,7 +276,7 @@ void lerContatos(int *total){
         // LEITURA DO NOME
         printf("Digite seu nome: ");
         getchar();
-        lerFormatStr(agenda.contato[i].nome, TAMMAX_NOME, FALSE);
+        lerFormatStr(&agenda.contato[i].nome, TAMMAX_NOME, FALSE);
 
         // LEITURA DE CONTINUAÇÃO
         printf("Deseja adicionar mais alguém? (S/N): ");
@@ -307,31 +307,6 @@ void listarContatos(int total){
 }
 
 //FUNÇÕES DE ARQUIVO
-
-void salvarArquivo(int total){
-    FILE *ptrArquivo = NULL;
-    ptrArquivo = fopen ( "dados.csv", "w" );
-
-    if (ptrArquivo == NULL){
-        printf("Não foi possível criar o arquivo.\n");
-        printf("Finalizando execução...\n");
-        exit ( 0 );
-    }
-
-
-    int total = 3;
-
-
-    for (int i = 0; i < total; i++){
-        fprintf ( ptrArquivo, "%s;%s;%s\n", agenda.contato[i].nome, agenda.contato[i].endereco, agenda.contato[i].cep);
-
-    }
-
-    fclose (ptrArquivo );
-    ptrArquivo = NULL;
-
-}
-
 
 int main(int argc, char const *argv[]){
 
