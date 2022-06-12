@@ -2,33 +2,41 @@
 #include <stdlib.h>
 #include <string.h>
 
-void ordenarVetor (char* vetor[], int total){
-    char aux[80];
-    printf("%i", total);
-    int r;
+void ordenarPorNome(char vetor[], int tam){
 
-    for (int i = 0; i <= total; i++){
-       for (int j = i+1; j <= total; j++){
-           r = strcmp(vetor[i], vetor[j]);
-           if (r > 0){
-            strcpy(aux, vetor[i]);
-            strcpy(vetor[i], vetor[j]);
-            strcpy(vetor[j], aux);
-           }
-           
-       }
-       
+    int r;
+    char aux[80];
+
+    for (int i = 0; i < tam; i++){
+        for (int j = i+1; j < tam; j++){
+            r = strcmp(vetor[i], vetor[j]);
+            if (r>0){
+                strcpy(aux, vetor[i]);
+                strcpy(vetor[i], vetor[j]);
+                strcpy(vetor[j], aux);
+
+            }
+        }
+        
     }
-    
-    
+
 }
 
-int main(int argc, char const *argv[])
-{
-    char* nome[20] = {"sant", "alysson", "lucas", "alisson", "matheus", "luquinha", "luã"};
-    int total = 7;
-    ordenarVetor(nome, total);
+
+int main(int argc, char const *argv[]){
+   
+
+    char vetor[10][50];
+    int tam = 3;
+    printf("Digite %i nomes", tam);
+
+    for (int i = 0; i < tam; i++){
+        gets(vetor[i]);
+    }
     
+    ordenarPorNome(vetor, tam);
+    
+
     
     
     return 0;
