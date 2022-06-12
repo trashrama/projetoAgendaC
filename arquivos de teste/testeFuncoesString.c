@@ -7,37 +7,49 @@
 #define TRUE 1
 #define FALSE 0
 
-
 void tirarEspacos(char *nome){
     //tira o primeiro espaço e arruma as posições
+    int i, j;
     int TAM_NOME = strlen(nome);
     char stringSem[TAM_NOME];
-    
-    int contadorEspacos, j;
-    for (int i = 0; i < strlen(nome); i++){
-        if(nome[i] != ' '){
-            contadorEspacos = 0;
-            stringSem[j] = nome[i];
-            j++;
-            printf("%s\n", stringSem);
-        }else{
-            contadorEspacos++;
-            if (contadorEspacos == 1){
-                stringSem[j] = ' ';
-                j++;
-            }
+    char *token;
+
+
+    //procurar espaços no meio
+    strcpy(stringSem, "");
+    strcpy(stringSem, nome);
+    strcpy(nome, "");
+
+    token = strtok(stringSem, " ");
+    while (token != NULL){
+        strcat(nome, token);
+        strcat(nome, " ");
+        token = strtok(NULL, " ");
+    }
+
+    //procurar espaços no começo
+    for (i = 0; i < TAM_NOME; i++){
+        if (nome[i] != ' '){
+            break;
         }
     }
-        stringSem[j] = '\0';
-     
+
+    //calular o novo tamanho sem os espaços do nome original
+    TAM_NOME = strlen(nome) - i;
+
+    //procurar espaços no final
+    for (j = TAM_NOME; j > 0; j--){
+        if (nome[j] != ' '){
+            break;
+        }
+    }
+
+    strcpy(stringSem, nome);
+
+    strncpy(nome, &stringSem[i], j-1);
+    nome[j-1] = '\0';
     
-    strcpy(nome, stringSem);
-	
-}
-   
-  
-
-
+} 
 void deixarMinusculo(char *nome){
     int TAM_NOME = strlen(nome);
     for (int i = 0; i < TAM_NOME; i++){
@@ -54,37 +66,26 @@ void capitalizarNome(char *nome){
     //capitalizando o primeiro caracter;
     nome[0] = toupper(nome[0]);
 
-    for (int i = 0; i < TAM_NOME; i++){
-    
-  
-        /*
-        Criei uma variável contador e uma que pega a primeira posição após o espaço.
+      /*
+        Criei uma variável contador que conta o tamanho da string e uma que pega a primeira posição após o espaço.
         Para nomes como "Ari de Sá", criei uma variável que conta quando existem preposições
         se já tiver uma preposição, a próxima palavra com dois caracteres será capitalizada.
-        */
+        A preposição no meio do nome não será printada, já que printamos somente o nome e sobrenome,
+        mas em caso de printar nome e sobrenome em outra função, já temos um uso aqui.
+    */
 
-        if (nome[i] == ' '){
-            contador = 0;
-            primeiraPos = i+1;
-        }
-
-        if ( (contador >= 4) || (contador == 2 && jaTevePreposicao == TRUE) ) {
-            nome[primeiraPos] = toupper(nome[primeiraPos]);
-
-            if (jaTevePreposicao == TRUE){
-                jaTevePreposicao = FALSE;
-            }
-        }
-
-        if ((contador == 2) && (nome[i+1] == ' ')){
-            jaTevePreposicao = TRUE;
-        } 
-
-        contador++;
+    //capitalizando sobrenome sem preposição
+    for (int i = 0; i < TAM_NOME; i++){
         
+        if (nome[i] == ' '){
+            primeiraPos = i+1;
+            nome[primeiraPos] = toupper(nome[primeiraPos]);
+        }
+    
     }
 
 }
+
 int verificarEspacos(char *nome){
     //essa função é necessária para verificar espaços
     //e impedir que meu programa bugue ao procurar sobrenome
@@ -99,60 +100,100 @@ int verificarEspacos(char *nome){
     
     return temEspaco;
 }
-void printarNome(int temEspaco, char *nome){
+
+char* printarNome(char *nome){
+    int temEspaco = verificarEspacos(nome);
     char primeiroNome[20], ultimoSobrenome[20];
+    char* nomeResumido = malloc(40);
+
+    int fimPrimeiroNome, comecoSobrenome, fimSobrenome, delimSobrenome;
+    int comecoPrimeiroNome = 0;
+
+    int ehVogal = FALSE;
+    int ehConsoante = FALSE;
+
+    char vogais[] = {'a', 'e', 'i', 'o', 'u'};
+    char consoantes[] = 
+                        {'b', 'c', 'd', 'f', 'g', 'h',
+                        'j', 'k', 'l', 'm', 'n', 'p',
+                        'q', 'r', 's', 't', 'v', 'w', 
+                        'x', 'y', 'z'};
+
+    strcpy(primeiroNome, "");
+    strcpy(ultimoSobrenome, "");
+    //strlen conta tbm o caracter nulo, então é o total de caracteres  + \0
     int TAM_NOME = strlen(nome);
 
-    if (temEspaco == TRUE){
-        int finalPrNome = 0;
-        //pega o primeiro nome
-        for (int i = 0; i < TAM_NOME; i++){
-            if (nome[i] == ' '){
-                finalPrNome = i;
-                // esse -1 e mais +1 na funçao seguinte eh pq
-                // fiz i-1 pra pegar a posiçao anterior ao espaço
-                strncpy(primeiroNome, &nome[0], finalPrNome); 
-                primeiroNome[finalPrNome+1] = '\0';
 
-                // e adicionei 1 pois a funçao strncpy usa o ultimo caracter de delimitador
+    if (temEspaco == TRUE){
+
+        // pegar o primeiro nome
+        for (int i = 1; i < TAM_NOME; i++){
+            if (nome[i] == ' '){
+                fimPrimeiroNome = i;
                 break;
             }
         }
-                
-        // pegar ultimo sobrenome
-        int comecoSobrenome = 0;
-        for (int i = TAM_NOME-1; i > 0; i--){
+        //strncpy copia uma quantidade N de caracteres, lembrar disso
+        strncpy(primeiroNome, &nome[comecoPrimeiroNome], fimPrimeiroNome);
+        primeiroNome[fimPrimeiroNome] = '\0';
+
+        // pegar o segundo nome
+        for (int i = TAM_NOME-1; TAM_NOME > 0; i--){
             if (nome[i] == ' '){
                 comecoSobrenome = i+1;
-
-                strncpy(ultimoSobrenome, &nome[comecoSobrenome], TAM_NOME-1);
-                ultimoSobrenome[TAM_NOME] = '\0';
-
                 break;
             }
         }
-            printf("%s %s\n", primeiroNome, ultimoSobrenome);
 
+        fimSobrenome = TAM_NOME - comecoSobrenome;
+        strncpy(ultimoSobrenome, &nome[comecoSobrenome], fimSobrenome);
+        ultimoSobrenome[fimSobrenome] = '\0';
+
+        //ver se o 3 caracter do sobrenome é vogal e através disso limitar 
+
+        for (int i = 0; i < 5; i++){
+            if (vogais[i] == ultimoSobrenome[2]){
+                ehVogal = TRUE;
+            }
+        }
+        for (int i = 0; i < 21; i++){
+            if (consoantes[i] == ultimoSobrenome[2]){
+                ehConsoante = TRUE;
+            }
+        }
+        
+        
+
+        if(ehVogal){
+            delimSobrenome = 2;
+        }else if(ehConsoante){
+            delimSobrenome = 3;
         }else{
-        printf("%s", nome);
+            delimSobrenome = 1;
+        }
+
+        sprintf(nomeResumido, "%s %.*s.", primeiroNome, delimSobrenome, ultimoSobrenome);
+    }else{
+        sprintf(nomeResumido, "%s", nome);
     }
+    
+    return nomeResumido;
 
 }
 
 
 int main(int argc, char const *argv[]){
 
-    setlocale(LC_ALL,"");
-    char nome[] = {" Roberto de Almeida                       Façanha Júnior"};
+    char nome[] = {"buceto"};
 
+    //printf("%s", nome);
     tirarEspacos(nome);
     deixarMinusculo(nome);
     capitalizarNome(nome);
-    verificarEspacos(nome);
+    //printf("%s", nome);
 
-    //1 e 32 da manha essa e foda viado neyma neyma neyma neyma piquezin dos cria
-    int temEspaco = verificarEspacos(nome);
-    printarNome(temEspaco, nome);
+    printf("%s", printarNome(nome));
     
     
     
