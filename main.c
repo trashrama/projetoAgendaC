@@ -807,7 +807,7 @@ void excluirContato(int *total){
             printf("[%i] Nome: %s\n", i+1, agenda.contato[i].nome);
         }
 
-        printf("Digite o número do contato que deseja excluir: \n");
+        printf("Digite o número do contato que deseja excluir: ");
         scanf("%i", &pos);
         pos = lerSelecao(*total);
 
