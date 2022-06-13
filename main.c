@@ -86,7 +86,7 @@ int main(int argc, char const *argv[]){
 
     int totalContatos = lerArquivo();
     int opcao = 0; /* A variável 'totalContatos' será armazenada em um arquivo
-                                       que servirá de contador, ao ler o arquivo.*/
+                                       que servirá de contador, ao ler o arquivo. */
     while(opcao != 6){
         //deixarCiano();
         printf("*********** AGENDA ***********\n");
@@ -478,6 +478,11 @@ void lerFormatStr(char var[], int tamanho, int tamanhoEhFixo){
     strcpy(buffer, "");
 
     fgets(buffer, TAMMAX_BUFFER, stdin);
+
+    while (buffer[0] == '\n' && buffer[1] == '\0') {
+        printf("Não é possível digitar uma string vazia.\nDigite novamente: ");
+        fgets(buffer, TAMMAX_BUFFER, stdin);
+    }
     buffer[strcspn(buffer, "\n")] = 0;
 
     /* 
@@ -910,8 +915,7 @@ void editarContato(int total){
     case 4:
         while (conf[0] != 'S'){
             printf("[CONTATO: %i] Digite o número da sua casa: ", ctt+1);
-            scanf("%i", &numCasa);
-            getchar();
+            numCasa = lerNumCasa();
             printf("Confirma a modificação? (S/N): ");
             lerOpcao(&conf);
         }
@@ -960,7 +964,6 @@ void editarContato(int total){
     case 8:
         while (conf[0] != 'S'){
             printf("[CONTATO: %i] Digite o seu email: ", ctt+1);
-            getchar();
             lerEmail(&email);
             printf("Confirma a modificação? (S/N): ");
             lerOpcao(&conf);
@@ -1041,7 +1044,8 @@ void listarContatos(int total){
 void consultarContato(int total){
     char nomeConsultado[TAMMAX_NOME];
     char aux[TAMMAX_NOME];
-    int r;
+    int r, posNome;
+    int foiEncontrado = FALSE;
     
     printf("Digite o nome a ser consultado: ");
     getchar();
@@ -1050,21 +1054,27 @@ void consultarContato(int total){
     for (int i = 0; i < total; i++){
         r = strcmp(agenda.contato[i].nome, nomeConsultado);
         if (r == 0){
-            printf("Encontrado!\n\n");
-            printf("Nome: %s\n", printarNome(agenda.contato[i].nome));
-            printf("Endereço: %s %s, nº %i\n", printarEnumerados(1, agenda.contato[i].tipoEndereco), agenda.contato[i].endereco, agenda.contato[i].numCasa);
-            printf("CEP: %s\n", printarCep(agenda.contato[i].cep));
-            printf("Telefone: %s\n", printarTel(agenda.contato[i].telefone));
-            printf("Tipo do Contato: %s\n", printarEnumerados(2, agenda.contato[i].tipoContato));
-            printf("Email: %s\n", agenda.contato[i].email);
-            printf("%s: %s\n", printarEnumerados(3, agenda.contato[i].tipoRedeSocial), agenda.contato[i].redeSocial);
-            printf("Nota: %s\n", agenda.contato[i].nota);
-        }else{
-            printf("Nome não encontrado.\n");
+            foiEncontrado = TRUE;
+            posNome = i;
         }
+    }
 
+    if (foiEncontrado == TRUE){
+        printf("Encontrado!\n\n");
+        printf("Nome: %s\n", printarNome(agenda.contato[posNome].nome));
+        printf("Endereço: %s %s, nº %i\n", printarEnumerados(1, agenda.contato[posNome].tipoEndereco), agenda.contato[posNome].endereco, agenda.contato[posNome].numCasa);
+        printf("CEP: %s\n", printarCep(agenda.contato[posNome].cep));
+        printf("Telefone: %s\n", printarTel(agenda.contato[posNome].telefone));
+        printf("Tipo do Contato: %s\n", printarEnumerados(2, agenda.contato[posNome].tipoContato));
+        printf("Email: %s\n", agenda.contato[posNome].email);
+        printf("%s: %s\n", printarEnumerados(3, agenda.contato[posNome].tipoRedeSocial), agenda.contato[posNome].redeSocial);
+        printf("Nota: %s\n", agenda.contato[posNome].nota);
+    }else{
+        printf("Nome não encontrado.\n");
     }
     
+
+    printf("\n");
 }
 
 /* unicamente, por: SANT! */
