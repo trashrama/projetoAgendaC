@@ -472,7 +472,6 @@ void lerFormatStr(char var[], int tamanho, int tamanhoEhFixo){
 
     if (tamanhoEhFixo == TRUE){
         while (strlen(buffer) != tamanho-1){
-            printf("%s:%i", buffer, strlen(buffer));
             printf("Tamanho diferente que o esperado (%i)\nDigite novamente: ", tamanho-1);
             fgets(buffer, TAMMAX_BUFFER, stdin);
             buffer[strcspn(buffer, "\n")] = 0;
@@ -511,6 +510,7 @@ void lerOpcao(char* opcao){
 }
 int lerSelecao(int u){
     int var;
+    char buffer[2];
 
     /*
     A variável p é o ponto de início das seleções, já que o usuário não começa a escolher do 0.
@@ -518,7 +518,8 @@ int lerSelecao(int u){
     */
     int p = 1;
     do{
-        scanf("%i", &var);
+        lerFormatStr(buffer, 2, TRUE);
+        var = atoi(buffer);
 
         if( (var > u) || (var < p) ){
             printf("Fora de alcance! Digite novamente.\n");
@@ -528,6 +529,16 @@ int lerSelecao(int u){
 
     return var;
 }
+int lerNumCasa(){
+    int var;
+    char buffer[TAMMAX_BUFFER];
+
+    lerFormatStr(buffer, TAMMAX_BUFFER, FALSE);
+    var = atoi(buffer);
+
+    return var;
+}
+
 
 //FUNÇÕES DE ARQUIVO
 void salvarArquivo(int total){
@@ -640,103 +651,102 @@ void lerContatos(int *total){
     //buffer é uma variável que o email será inserido temporariamente.
     char buffer[TAMMAX_EMAIL];
 
-    while (parar != TRUE){
+    if (*total >= TAMMAX_AGENDA){
+        printf("Não é possível registrar mais contatos!\nTOTAL ATINGIDO!");
+    }else{
 
-        int i = *total;
+        while (parar != TRUE){
 
-
-        // LEITURA DO NOME
-        printf("Digite seu nome: ");
-        getchar();
-        lerFormatStr(agenda.contato[i].nome, TAMMAX_NOME, FALSE);
-
-        // LEITURA DO TIPO DO ENDEREÇO
-        printf("[1] Alameda \n");
-        printf("[2] Avenida \n");
-        printf("[3] Praça \n");
-        printf("[4] Rua \n");
-        printf("[5] Travessa \n");
-        printf("[6] Rodovia \n");
-
-        printf("Digite o tipo do endereço: ");
-        agenda.contato[i].tipoEndereco = lerSelecao(NUMOPCOES_END);
-        
-
-        // LEITURA DO ENDEREÇO
-        printf("Digite seu endereço: ");
-        getchar();
-        lerFormatStr(agenda.contato[i].endereco, TAMMAX_ENDERECO, FALSE);
-
-        // LEITURA DO NÚMERO DA CASA
-        printf("Digite o número da casa: ");
-        getchar();
-        scanf("%i", &agenda.contato[i].numCasa);
-
-        // LEITURA DO CEP
-        printf("Digite seu CEP: ");
-        getchar();
-        lerFormatStr(agenda.contato[i].cep, TAMMAX_CEP, TRUE);
+            int i = *total;
 
 
-        //LEITURA DO NÚMERO DE TELEFONE
-        printf("Digite o número do telefone (com DDD, e com 9 antes do número): ");
-        lerFormatStr(agenda.contato[i].telefone, TAMMAX_TEL, TRUE);
+            // LEITURA DO NOME
+            printf("Digite seu nome: ");
+            getchar();
+            lerFormatStr(agenda.contato[i].nome, TAMMAX_NOME, FALSE);
 
-        //LEITURA DO TIPO DE CONTATO
-        printf("[1] Celular \n");
-        printf("[2] Comercial \n");
-        printf("[3] Fixo \n");
-        printf("[4] Pessoal \n");
-        printf("[5] Fax \n");
-        printf("[6] Personalizado \n");
-        printf("Digite o tipo do contato: ");
-        agenda.contato[i].tipoContato = lerSelecao(NUMOPCOES_CTT);
+            // LEITURA DO TIPO DO ENDEREÇO
+            printf("[1] Alameda \n");
+            printf("[2] Avenida \n");
+            printf("[3] Praça \n");
+            printf("[4] Rua \n");
+            printf("[5] Travessa \n");
+            printf("[6] Rodovia \n");
 
-        // LEITURA DO E-MAIL
-        getchar();
-        lerEmail(&buffer);
-        strcpy(agenda.contato[i].email, buffer);
+            printf("Digite o tipo do endereço: ");
+            agenda.contato[i].tipoEndereco = lerSelecao(NUMOPCOES_END);
+            
 
-        // LEITURA DA NOME DE USUÁRIO DA REDE SOCIAL
-        printf("[1] Twitter \n");
-        printf("[2] Facebook \n");
-        printf("[3] Instagram \n");
-        printf("[4] GitHub \n");
-        printf("[5] LinkedIn \n");
-        printf("Digite o tipo da rede social: ");
-        agenda.contato[i].tipoRedeSocial = lerSelecao(NUMOPCOES_RS);
+            // LEITURA DO ENDEREÇO
+            printf("Digite seu endereço: ");
+            lerFormatStr(agenda.contato[i].endereco, TAMMAX_ENDERECO, FALSE);
 
-        printf("Digite o seu nome de usuário do %s: ", printarEnumerados(3, agenda.contato[i].tipoRedeSocial));
-        getchar();
-        lerFormatStr(agenda.contato[i].redeSocial, TAMMAX_RS, FALSE);
+            // LEITURA DO NÚMERO DA CASA
+            printf("Digite o número da casa: ");
+            agenda.contato[i].numCasa = lerNumCasa();
 
-        // LEITURA DA NOTA
-        printf("Deseja adicionar uma nota? (S/N): ");
-        lerOpcao(&opcao);
+            // LEITURA DO CEP
+            printf("Digite seu CEP: ");
+            lerFormatStr(agenda.contato[i].cep, TAMMAX_CEP, TRUE);
 
-        if (opcao == 'N'){
-            strcpy(agenda.contato[i].nota, " ");
-        }else{
-            printf("Digite uma nota: \n");
-            lerFormatStr(agenda.contato[i].nota, TAMMAX_NOTA, FALSE);
+
+            //LEITURA DO NÚMERO DE TELEFONE
+            printf("Digite o número do telefone (com DDD, e com 9 antes do número): ");
+            lerFormatStr(agenda.contato[i].telefone, TAMMAX_TEL, TRUE);
+
+            //LEITURA DO TIPO DE CONTATO
+            printf("[1] Celular \n");
+            printf("[2] Comercial \n");
+            printf("[3] Fixo \n");
+            printf("[4] Pessoal \n");
+            printf("[5] Fax \n");
+            printf("[6] Personalizado \n");
+            printf("Digite o tipo do contato: ");
+            agenda.contato[i].tipoContato = lerSelecao(NUMOPCOES_CTT);
+
+            // LEITURA DO E-MAIL
+            lerEmail(&buffer);
+            strcpy(agenda.contato[i].email, buffer);
+
+            // LEITURA DA NOME DE USUÁRIO DA REDE SOCIAL
+            printf("[1] Twitter \n");
+            printf("[2] Facebook \n");
+            printf("[3] Instagram \n");
+            printf("[4] GitHub \n");
+            printf("[5] LinkedIn \n");
+            printf("Digite o tipo da rede social: ");
+            agenda.contato[i].tipoRedeSocial = lerSelecao(NUMOPCOES_RS);
+
+            printf("Digite o seu nome de usuário do %s: ", printarEnumerados(3, agenda.contato[i].tipoRedeSocial));
+            lerFormatStr(agenda.contato[i].redeSocial, TAMMAX_RS, FALSE);
+
+            // LEITURA DA NOTA
+            printf("Deseja adicionar uma nota? (S/N): ");
+            lerOpcao(&opcao);
+
+            if (opcao == 'N'){
+                strcpy(agenda.contato[i].nota, " ");
+            }else{
+                printf("Digite uma nota: \n");
+                lerFormatStr(agenda.contato[i].nota, TAMMAX_NOTA, FALSE);
+            }
+
+            // LEITURA DE CONTINUAÇÃO
+            printf("Deseja adicionar mais alguém? (S/N): ");
+            getchar();
+            lerOpcao(&opcao);
+            if (opcao == 'N'){
+                parar = TRUE;
+            }
+            getchar();
+            
+            (*total)++;
         }
 
-        // LEITURA DE CONTINUAÇÃO
-        printf("Deseja adicionar mais alguém? (S/N): ");
-        getchar();
-        lerOpcao(&opcao);
-        if (opcao == 'N'){
-            parar = TRUE;
-        }
-        getchar();
-        
-        (*total)++;
+
+        ordenarPorNome(*total);
+        salvarArquivo(*total);
     }
-
-    ordenarPorNome(*total);
-    salvarArquivo(*total);
-    //limparTela();
-
 }
 
 void excluirContato(int *total){
@@ -967,8 +977,6 @@ void listarContatos(int total){
     if (total == 0){
         printf("Ainda não há contatos registrados!\n");
         sleep(1);
-    }else if(total >= TAMMAX_AGENDA){
-        printf("Não é possível registrar mais contatos!\nTOTAL ATINGIDO!");
     }else{
         printf("\n=========== DADOS ===========\n");
         for (int c = 0; c < total; c++){
