@@ -1,3 +1,6 @@
+#ifdef _WIN32
+#include <windows.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -55,16 +58,18 @@ void resetarCores();
 void tirarEspacos(char *string);
 void deixarMinusculo(char *string);
 void capitalizarStr(char *string);
-void ordenarPorNome(int total);
 void lerEmail(char* email);
-void lerFormatStr(char var[], int tamanho, int tamanhoEhFixo);
 void lerOpcao(char* opcao);
-void salvarArquivo(int total);
 void lerContatos(int *total);
 void excluirContato(int *total);
 void editarContato(int *total);
 void listarContatos(int total);
+void salvarArquivo(int total);
 void consultarContato(int total);
+void ordenarPorNome(int total);
+
+void lerFormatStr(char var[], int tamanho, int tamanhoEhFixo);
+
 
 char* printarNome(char *nome);
 char* printarEnumerados(int opcao, int pos);
@@ -73,6 +78,7 @@ char* printarCep(char cep[]);
 
 int verificarEspacos(char *nome);
 int lerSelecao(int u);
+int lerNumCasa();
 int lerArquivo();
 
 int main(int argc, char const *argv[]){
@@ -136,7 +142,12 @@ void limparTela (){
 
 //FUNÇÕES DE CORES - AUXILIARES - PS: Só funciona no terminal do linux por enquanto!
 void deixarPreto () {
-  printf("\033[0;30m");
+    #ifdef __linux__
+          printf("\033[0;30m");
+    #elif _WIN32
+        system ( "cls" );
+    #endif
+
 }
 void deixarVermelho () {
   printf("\033[1;31m");
@@ -345,14 +356,14 @@ void ordenarPorNome(int total){
 
 //FUNÇÕES DE PRINT - AUXILIARES
 char* printarEnumerados(int opcao, int pos){
-    const char *nomesTpEndereco[] = {"Alameda", "Avenida", "Praça", "Rua", "Travessa", "Rodovia"};
-    const char *nomesTpContato[] = {"Celular", "Comercial", "Fixo", "Pessoal", "Fax", "Personalizado"};
-    const char *nomesTpRede[] = {"Twitter", "Facebook", "Instagram", "GitHub", "LinkedIn"};
+    const char *nomesTpEndereco[] = {"Al.", "Av.", "Pr.", "Rua", "Tr.", "Rod."};
+    const char *nomesTpContato[] = {"Cel.", "Com.", "Fixo", "Pes.", "Fax", "Per."};
+    const char *nomesTpRede[] = {"TWT.", "FB.", "INSTA.", "GH.", "LI."};
     pos--;
     
     // OPÇÃO 1: Enumerado dos Endereços
     // OPÇÃO 2: Enumerado dos tipos de Contato
-    // OPÇÃO 3: Enumerado dos tipos de rede
+    // OPÇÃO 3: Enumerado dos tipos de Rede Social
 
     switch (opcao){
     case 1:
@@ -533,12 +544,22 @@ int lerNumCasa(){
     int var;
     char buffer[TAMMAX_BUFFER];
 
-    lerFormatStr(buffer, TAMMAX_BUFFER, FALSE);
-    var = atoi(buffer);
+    /*
+        A função "atoi" retorna o valor 0 caso não consiga
+        converter a string para número. Então loopei ela
+        forçando o usuário a digitar um número ao invés de uma string.
+    */
+    do{
+        lerFormatStr(buffer, TAMMAX_BUFFER, FALSE);
+        var = atoi(buffer);
+
+        if (var == 0){
+            printf("Você está digitando uma string.\nDigite um número: ");
+        }
+    } while (var == 0);
 
     return var;
 }
-
 
 //FUNÇÕES DE ARQUIVO
 void salvarArquivo(int total){
@@ -573,8 +594,8 @@ int lerArquivo(){
     ptrArquivo = fopen ("dados.csv", "r");
     
     if (ptrArquivo == NULL){
-        printf("Não foi possível ler o arquivo.\n");
-        printf("Assumindo que não existe arquivo.\nSerá criado do Zero.\n");
+        printf("\n* Não foi possível ler o arquivo.\n");
+        printf("Assumindo que não existe arquivo.\nSerá criado do Zero. *\n\n");
         return 0;
     }
 
@@ -748,7 +769,6 @@ void lerContatos(int *total){
         salvarArquivo(*total);
     }
 }
-
 void excluirContato(int *total){
     int pos;
     char opcao[2];
