@@ -469,6 +469,7 @@ void lerEmail(char* email){
 }
 void lerFormatStr(char var[], int tamanho, int tamanhoEhFixo){
     
+    int temPontoVirgula = FALSE;
     /* 
         A função abaixo realiza a leitura de uma string, e
         a remoção do '\n' ao final desta.
@@ -486,12 +487,37 @@ void lerFormatStr(char var[], int tamanho, int tamanhoEhFixo){
 
     if (tamanhoEhFixo == TRUE){
         while (strlen(buffer) != tamanho-1){
-            printf("Tamanho diferente que o esperado (%i)\nDigite novamente: ", tamanho-1);
+            printf("Tamanho diferente que o esperado (%i) ou fora de alcance.\nDigite novamente: ", tamanho-1);
             fgets(buffer, TAMMAX_BUFFER, stdin);
             buffer[strcspn(buffer, "\n")] = 0;
         }
     }
 
+
+    // impedindo o usuário de escrever ponto e virgula e quebrar o codigo
+    
+    for (int i = 0; i < strlen(buffer); i++){
+        if (buffer[i] == ';'){
+            temPontoVirgula = TRUE;
+        }
+    }
+    
+    while (temPontoVirgula == TRUE){
+        printf("Não digite ponto e vírgula.\nDigite novamente: ");
+        fgets(buffer, TAMMAX_BUFFER, stdin);
+        buffer[strcspn(buffer, "\n")] = 0; 
+
+        for (int i = 0; i < strlen(buffer); i++){
+            if (buffer[i] == ';'){
+                temPontoVirgula = TRUE;
+            }else{
+                temPontoVirgula = FALSE;
+            }
+        }
+    }
+    
+    
+    
     tirarEspacos(buffer);
     deixarMinusculo(buffer);
     capitalizarStr(buffer);
@@ -676,7 +702,7 @@ void lerContatos(int *total){
     char buffer[TAMMAX_EMAIL];
 
     if (*total >= TAMMAX_AGENDA){
-        printf("Não é possível registrar mais contatos!\nTOTAL ATINGIDO!");
+        printf("Não é possível registrar mais contatos!\nTOTAL ATINGIDO!\n\n");
     }else{
 
         while (parar != TRUE){
@@ -783,7 +809,7 @@ void excluirContato(int *total){
 
         printf("Digite o número do contato que deseja excluir: \n");
         scanf("%i", &pos);
-        pos = pos-1;
+        pos = lerSelecao(*total);
 
         printf("Deseja confirmar a exclusão de %s? (S/N): ", printarNome(agenda.contato[pos].nome));
         getchar();
@@ -1008,7 +1034,6 @@ void listarContatos(int total){
             printf("E-mail: %s\n", agenda.contato[c].email);
             printf("%s: %s\n", printarEnumerados(3, agenda.contato[c].tipoRedeSocial), agenda.contato[c].redeSocial);
             printf("Nota: %s\n", agenda.contato[c].nota);
-            printf("\n");
         }
 
     }
