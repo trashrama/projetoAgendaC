@@ -1,6 +1,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -90,16 +91,16 @@ int main(int argc, char const *argv[]){
     while(opcao != 6){
         //deixarCiano();
         printf("*********** AGENDA ***********\n");
-        //deixarRoxo();
+        deixarAmarelo();
         printf("1. Ver Agenda\n");
         printf("2. Adicionar Contatos\n");
         printf("3. Editar Contato\n");
         printf("4. Consultar Contato\n");
         printf("5. Excluir Contato\n");
         printf("6. Sair\n");
-        //deixarAzul();
+        deixarAzul();
         printf("\nEscolha a opção: ");
-        //resetarCores();
+        resetarCores();
         scanf("%i", &opcao);
 
         switch (opcao){
@@ -149,16 +150,16 @@ void deixarPreto () {
 
 }
 void deixarVermelho () {
-  printf("\033[1;31m");
+  printf("\033[031m");
 }
 void deixarVerde () {
-  printf("\033[1;32m");
+  printf("\033[032m");
 }
 void deixarAmarelo() {
-  printf("\033[1;33m");
+  printf("\033[033m");
 }
 void deixarAzul () {
-  printf("\033[0;34m");
+  printf("\033[034m");
 }
 void deixarRoxo () {
   printf("\033[1;35m");
@@ -541,26 +542,30 @@ void lerOpcao(char* opcao){
     Exemplo: - Deseja continuar? (Digite S ou N)
     */
 
-    char buffer;
-    scanf("%c", &buffer);
-    buffer = toupper(buffer);
+    char buffer[2];
+    lerFormatStr(buffer, 2, TRUE);
 
-    while ( (buffer != 'S') && (buffer != 'N') ){
+    buffer[0] = toupper(buffer[0]);
+
+    while ( (buffer[0] != 'S') && (buffer[0] != 'N') ){
         printf("Opção Inválida!\nDigite novamente: ");
-        getchar();
-        scanf("%c", &buffer);
-        buffer = toupper(buffer);
+        lerFormatStr(buffer, 2, TRUE);
+        buffer[0] = toupper(buffer[0]);
     }
-    *opcao = buffer;
+
+    strcpy(opcao, buffer);
+    strcpy(buffer, "");
+
 }
 int lerSelecao(int u){
     int var;
     char buffer[2];
 
     /*
-    A variável p é o ponto de início das seleções, já que o usuário não começa a escolher do 0.
-    A variável u é a última dentre as opções possíveis.
+       A variável p é o ponto de início das seleções, já que o usuário não começa a escolher do 0.
+       A variável u é a última dentre as opções possíveis.
     */
+   
     int p = 1;
     do{
         lerFormatStr(buffer, 2, TRUE);
@@ -585,6 +590,9 @@ int lerNumCasa(){
     */
     do{
         lerFormatStr(buffer, TAMMAX_BUFFER, FALSE);
+        if (buffer[0] == '-'){
+            return 0;
+        }
         var = atoi(buffer);
 
         if (var == 0){
@@ -701,7 +709,7 @@ int lerArquivo(){
 //FUNÇÕES PRINCIPAIS
 void lerContatos(int *total){
     int parar = FALSE;
-    char opcao;
+    char opcao[2];
 
     //buffer é uma variável que o email será inserido temporariamente.
     char buffer[TAMMAX_EMAIL];
@@ -737,7 +745,7 @@ void lerContatos(int *total){
             lerFormatStr(agenda.contato[i].endereco, TAMMAX_ENDERECO, FALSE);
 
             // LEITURA DO NÚMERO DA CASA
-            printf("Digite o número da casa: ");
+            printf("Digite o número da casa ( - Sem número): ");
             agenda.contato[i].numCasa = lerNumCasa();
 
             // LEITURA DO CEP
@@ -779,21 +787,22 @@ void lerContatos(int *total){
             printf("Deseja adicionar uma nota? (S/N): ");
             lerOpcao(&opcao);
 
-            if (opcao == 'N'){
+
+            if (opcao[0] == 'N'){
                 strcpy(agenda.contato[i].nota, " ");
             }else{
-                printf("Digite uma nota: \n");
+                printf("Digite uma nota: ");
+                getchar();
+
                 lerFormatStr(agenda.contato[i].nota, TAMMAX_NOTA, FALSE);
             }
 
             // LEITURA DE CONTINUAÇÃO
             printf("Deseja adicionar mais alguém? (S/N): ");
-            getchar();
             lerOpcao(&opcao);
-            if (opcao == 'N'){
+            if (opcao[0] == 'N'){
                 parar = TRUE;
             }
-            getchar();
             
             (*total)++;
         }
@@ -813,11 +822,11 @@ void excluirContato(int *total){
         }
 
         printf("Digite o número do contato que deseja excluir: ");
-        scanf("%i", &pos);
+        getchar();
         pos = lerSelecao(*total);
+        pos--;
 
         printf("Deseja confirmar a exclusão de %s? (S/N): ", printarNome(agenda.contato[pos].nome));
-        getchar();
         lerOpcao(&opcao);
     }
 
@@ -1078,3 +1087,6 @@ void consultarContato(int total){
 }
 
 /* unicamente, por: SANT! */
+
+
+//https://imgur.com/a/gK42Nae erros recentews
