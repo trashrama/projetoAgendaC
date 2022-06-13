@@ -16,6 +16,7 @@
 
 //TAMMAX_AGENDA é uma pseucostante para número máximo de contatos na agenda.
 #define TAMMAX_AGENDA 5
+#define TAMMAX_BUFFER 128
 #define TAMMAX_NOME 50
 #define TAMMAX_ENDERECO 50
 #define TAMMAX_TEL 12
@@ -458,9 +459,11 @@ void lerFormatStr(char var[], int tamanho, int tamanhoEhFixo){
         A função abaixo realiza a leitura de uma string, e
         a remoção do '\n' ao final desta.
     */
-   
-    fgets(var, tamanho, stdin);
-    var[strcspn(var, "\n")] = 0;
+    char buffer[TAMMAX_BUFFER];
+    strcpy(buffer, "");
+
+    fgets(buffer, TAMMAX_BUFFER, stdin);
+    buffer[strcspn(buffer, "\n")] = 0;
 
     /* 
         tamanhoEhFixo é uma variável booleana de controle para strings
@@ -468,16 +471,21 @@ void lerFormatStr(char var[], int tamanho, int tamanhoEhFixo){
     */
 
     if (tamanhoEhFixo == TRUE){
-        while (strlen(var) != tamanho-1){
-            printf("Tamanho menor que o esperado (%i)\nDigite novamente: ", tamanho-1);
-            fgets(var, tamanho, stdin);
-            var[strcspn(var, "\n")] = 0;
+        while (strlen(buffer) != tamanho-1){
+            printf("%s:%i", buffer, strlen(buffer));
+            printf("Tamanho diferente que o esperado (%i)\nDigite novamente: ", tamanho-1);
+            fgets(buffer, TAMMAX_BUFFER, stdin);
+            buffer[strcspn(buffer, "\n")] = 0;
         }
     }
 
-    tirarEspacos(var);
-    deixarMinusculo(var);
-    capitalizarStr(var);
+    tirarEspacos(buffer);
+    deixarMinusculo(buffer);
+    capitalizarStr(buffer);
+
+    strcpy(var, buffer);
+    strcpy(buffer, "");
+
 
 }
 void lerOpcao(char* opcao){
@@ -672,7 +680,6 @@ void lerContatos(int *total){
 
         //LEITURA DO NÚMERO DE TELEFONE
         printf("Digite o número do telefone (com DDD, e com 9 antes do número): ");
-        getchar();
         lerFormatStr(agenda.contato[i].telefone, TAMMAX_TEL, TRUE);
 
         //LEITURA DO TIPO DE CONTATO
