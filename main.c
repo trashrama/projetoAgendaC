@@ -101,7 +101,7 @@ int main(int argc, char const *argv[]){
         deixarAzul();
         printf("\nEscolha a opção: ");
         resetarCores();
-        scanf("%i", &opcao);
+        opcao = lerSelecao(6);
 
         switch (opcao){
             case 1:
@@ -1052,8 +1052,10 @@ void listarContatos(int total){
 }
 void consultarContato(int total){
     char nomeConsultado[TAMMAX_NOME];
-    char aux[TAMMAX_NOME];
-    int r, posNome;
+    char* r;
+
+    int contResultados = 0;
+    // contResultados - Contador dos Resultados
     int foiEncontrado = FALSE;
     
     printf("Digite o nome a ser consultado: ");
@@ -1061,27 +1063,28 @@ void consultarContato(int total){
     lerFormatStr(nomeConsultado, TAMMAX_NOME, FALSE);
 
     for (int i = 0; i < total; i++){
-        r = strcmp(agenda.contato[i].nome, nomeConsultado);
-        if (r == 0){
+        r = strstr(agenda.contato[i].nome, nomeConsultado);
+        if (r != NULL){
             foiEncontrado = TRUE;
-            posNome = i;
+            contResultados++;
+
+            printf("\n=============================\n%18s %i\n=============================\n", "RESULTADO", contResultados);
+            printf("Nome: %s\n", printarNome(agenda.contato[i].nome));
+            printf("Endereço: %s %s, nº %i\n", printarEnumerados(1, agenda.contato[i].tipoEndereco), agenda.contato[i].endereco, agenda.contato[i].numCasa);
+            printf("CEP: %s\n", printarCep(agenda.contato[i].cep));
+            printf("Telefone: %s\n", printarTel(agenda.contato[i].telefone));
+            printf("Tipo do Contato: %s\n", printarEnumerados(2, agenda.contato[i].tipoContato));
+            printf("Email: %s\n", agenda.contato[i].email);
+            printf("%s: %s\n", printarEnumerados(3, agenda.contato[i].tipoRedeSocial), agenda.contato[i].redeSocial);
+            printf("Nota: %s\n", agenda.contato[i].nota);
+            printf("=============================");
+            
         }
     }
 
-    if (foiEncontrado == TRUE){
-        printf("Encontrado!\n\n");
-        printf("Nome: %s\n", printarNome(agenda.contato[posNome].nome));
-        printf("Endereço: %s %s, nº %i\n", printarEnumerados(1, agenda.contato[posNome].tipoEndereco), agenda.contato[posNome].endereco, agenda.contato[posNome].numCasa);
-        printf("CEP: %s\n", printarCep(agenda.contato[posNome].cep));
-        printf("Telefone: %s\n", printarTel(agenda.contato[posNome].telefone));
-        printf("Tipo do Contato: %s\n", printarEnumerados(2, agenda.contato[posNome].tipoContato));
-        printf("Email: %s\n", agenda.contato[posNome].email);
-        printf("%s: %s\n", printarEnumerados(3, agenda.contato[posNome].tipoRedeSocial), agenda.contato[posNome].redeSocial);
-        printf("Nota: %s\n", agenda.contato[posNome].nota);
-    }else{
-        printf("Nome não encontrado.\n");
+    if (foiEncontrado == FALSE){
+        printf("Não há resultados.");
     }
-    
 
     printf("\n");
 }
