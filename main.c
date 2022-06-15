@@ -1,7 +1,3 @@
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,6 +27,8 @@
 #define TAMMAX_NOTA 20
 //TAMMAX_LINHA_ARQ é uma pseucostante para o tamanho da linha do arquivo.
 #define TAMMAX_LINHA_ARQ 500
+//TAMMAX_DEST é uma pseudoconstante para o tamanho do destino para o arquivo de configuração.
+#define TAMMAX_DEST 30
 
 struct st_pessoa{
     char nome[TAMMAX_NOME], endereco[TAMMAX_ENDERECO], cep[TAMMAX_CEP], telefone[TAMMAX_TEL];
@@ -61,24 +59,26 @@ void deixarMinusculo(char *string);
 void capitalizarStr(char *string);
 void lerEmail(char* email);
 void lerOpcao(char* opcao);
-void lerContatos(int *total);
-void excluirContato(int *total);
-void editarContato(int total);
+void lerContatos(int *total, int auto_save);
+void excluirContato(int *total, int auto_save);
+void editarContato(int total, int auto_save);
 void listarContatos(int total);
 void salvarArquivo(int total);
 void consultarContato(int total);
 void ordenarPorNome(int total);
+void lerConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores,  int* TAMMAX_CONTATOS);
 
-void lerFormatStr(char var[], int tamanho, int tamanhoEhFixo);
+void lerFormatStr(char *var, int tamanho, int tamanhoEhFixo);
 
 char* printarNome(char *nome);
 char* printarEnumerados(int opcao, int pos);
 char* printarTel(char telefone[TAMMAX_TEL]);
 char* printarCep(char cep[]);
+char* printarEstado(int booleana);
 
 int verificarEspacos(char *nome);
 int lerSelecao(int u);
-int lerNumCasa();
+int lerNum();
 int lerArquivo();
 
 int main(int argc, char const *argv[]){
@@ -86,9 +86,16 @@ int main(int argc, char const *argv[]){
     setlocale ( LC_ALL, "" );
 
     int totalContatos = lerArquivo();
-    int opcao = 0; /* A variável 'totalContatos' será armazenada em um arquivo
-                                       que servirá de contador, ao ler o arquivo. */
-    while(opcao != 6){
+    int opcao = 0; /* A variável 'totalContatos' será armazenada em um arquivo que servirá de contador, ao ler o arquivo. */
+    
+    char locacao_dados[TAMMAX_DEST];
+    int auto_save;
+    int modo_cores;
+    long int TAMMAX_CONTATOS;
+
+    lerConfiguracoes(locacao_dados, &auto_save, &modo_cores, &TAMMAX_CONTATOS);
+
+    while(opcao != 7){
         //deixarCiano();
         printf("*********** AGENDA ***********\n");
         deixarAmarelo();
@@ -97,30 +104,36 @@ int main(int argc, char const *argv[]){
         printf("3. Editar Contato\n");
         printf("4. Consultar Contato\n");
         printf("5. Excluir Contato\n");
-        printf("6. Sair\n");
+        printf("6. Configurações\n");
+        printf("7. Sair\n");
+
         deixarAzul();
         printf("\nEscolha a opção: ");
         resetarCores();
-        opcao = lerSelecao(6);
+        opcao = lerSelecao(7);
 
         switch (opcao){
             case 1:
                 listarContatos(totalContatos);
                 break;
             case 2:
-                lerContatos(&totalContatos);
+                lerContatos(&totalContatos, auto_save);
                 break;
             case 3:
-                editarContato(totalContatos);
+                editarContato(totalContatos, auto_save);
                 break;
             case 4:
                 consultarContato(totalContatos);
                 break;
             case 5:
-                excluirContato(&totalContatos);
+                excluirContato(&totalContatos, auto_save);
                 break;
             case 6:
+                editarConfiguracoes(locacao_dados, &auto_save, &modo_cores, &TAMMAX_CONTATOS);
+                break;
+            case 7:
                 printf("Saindo do Programa...\n");
+                salvarArquivo(totalContatos);
                 break;
             default:
                 printf("Opção inválida!\n");
@@ -433,7 +446,7 @@ void lerEmail(char* email){
         lerFormatStr(email, TAMMAX_EMAIL, FALSE);
         tamanhoEmail = strlen(email);
         
-        for (int i = 0; i <= tamanhoEmail; i++){
+        for (int i = 0; i < tamanhoEmail; i++){
             if (email[i] == '@'){
                 if ( (email[i+1] != '\0') && (i != 0) ){
                     temArroba = TRUE;
@@ -468,7 +481,7 @@ void lerEmail(char* email){
     }
 
 }
-void lerFormatStr(char var[], int tamanho, int tamanhoEhFixo){
+void lerFormatStr(char* var, int tamanho, int tamanhoEhFixo){
     
     int temPontoVirgula = FALSE;
     /* 
@@ -531,7 +544,6 @@ void lerFormatStr(char var[], int tamanho, int tamanhoEhFixo){
     strcpy(var, buffer);
     strcpy(buffer, "");
 
-
 }
 void lerOpcao(char* opcao){
     /*
@@ -579,7 +591,7 @@ int lerSelecao(int u){
 
     return var;
 }
-int lerNumCasa(){
+int lerNum(){
     int var;
     char buffer[TAMMAX_BUFFER];
 
@@ -706,8 +718,231 @@ int lerArquivo(){
     return total;
 }
 
+//FUNÇÕES DE CONFIGURAÇÃO
+char* printarEstado(int booleana){
+    if(booleana == 1){
+        return "HABILITADO";
+    }else{
+        return "DESABILITADO";
+    }
+ 
+}
+char* tratarNomeArquivo(char *string){
+
+    int ultimoCaracter = strlen(string)-1;
+    int temCsv = (string[ultimoCaracter] == 'v') && (string[ultimoCaracter-1] == 's') && (string[ultimoCaracter-2] == 'c') && (string[ultimoCaracter-3] == '.');
+    
+    //verificar se tem '.' ou espaços no nome do arquivo, e substituir por exemplo, um underline.
+    //de quebra, ainda deixa tudo minúsculo xD
+    for (int i = 0; i <= ultimoCaracter; i++){
+        string[i] = tolower(string[i]);
+        
+        /* 
+        
+        A lógica usada aqui foi a seguinte, estou verificando se o carácter na posição i da string
+        é um espaço, ou um ponto. E se for um ponto, verifica se não tem a formação de caracteres ".csv".
+        para impedir que o programa transforme o ponto de ".csv" em underline.
+
+        */
+
+        if ( (string[i] == ' ') || ( (string[i] == '.') && !temCsv) ) {
+            string[i] = '_';
+        }
+    }
+
+    /*
+        Basicamente, essa função vai procurar 
+        por ".csv" na string e caso não tenha, vai adicionar.
+    */
+    
+    if(!temCsv){
+        strcat(string, ".csv");
+    }
+    
+
+}
+void lerConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores,  int* TAMMAX_CONTATOS){
+
+    FILE *arqConfig = NULL;
+    char linha[TAMMAX_LINHA_ARQ];
+    char bufferAtoi[2];
+
+    int numLinha = 0;
+    int comecoDados, fimDados;
+
+    arqConfig = fopen ("config.ini", "r");
+    
+    if (arqConfig == NULL){
+        arqConfig = fopen ("config.ini", "w");
+        // estrutura padrao de configuração
+        fprintf(arqConfig, "arquivo_dados=\"dados.csv\"\n");
+        fprintf(arqConfig, "auto_save=%i\n", TRUE);
+        fprintf(arqConfig, "modo_cores=%i\n", FALSE);
+        fprintf(arqConfig, "num_max_contatos=%i\n", 5);
+
+        fclose(arqConfig);
+        arqConfig = fopen ("config.ini", "r");
+
+    }
+
+
+    while( (fgets(linha, sizeof(linha), arqConfig) ) != NULL){
+
+        for (int i = 0; i < strlen(linha); i++){
+            if(linha[i] == '='){
+                comecoDados = i+1;
+                break;
+            }
+        }
+        
+        switch (numLinha){
+        case 0:
+            comecoDados++;
+            for (int j = strlen(linha)-1; j > 0; j--){
+                if(linha[j] == '"'){
+                    fimDados = j-1;
+                    break;
+                }
+            }
+            strcpy(locacao_dados, "");
+            strncpy(locacao_dados, &linha[comecoDados], (fimDados-comecoDados+1));
+            locacao_dados[fimDados-comecoDados+1] = '\0';
+
+            comecoDados = 0;
+            fimDados = 0;
+
+            break;
+        case 1:
+            strcpy(bufferAtoi, "");
+            strncpy(bufferAtoi, &linha[comecoDados], 1);
+            bufferAtoi[1] = '\0';
+
+            *auto_save = atoi(bufferAtoi);
+            strcpy(bufferAtoi, "");
+
+            break;
+        case 2:
+            strcpy(bufferAtoi, "");
+            strncpy(bufferAtoi, &linha[comecoDados], 1);
+            bufferAtoi[1] = '\0';
+
+            *modo_cores = atoi(bufferAtoi);
+            strcpy(bufferAtoi, "");
+
+            break;
+        case 3:
+            strcpy(bufferAtoi, "");
+            strncpy(bufferAtoi, &linha[comecoDados], (strlen(linha)-comecoDados-1) );
+            bufferAtoi[(strlen(linha)-comecoDados-1)] = '\0';
+            *TAMMAX_CONTATOS = atoi(bufferAtoi);
+            strcpy(bufferAtoi, "");
+
+            break;
+        }
+        numLinha++;
+    }
+
+    fclose(arqConfig);
+    arqConfig = NULL;
+
+}
+void editarConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores,  int* TAMMAX_CONTATOS){
+    char opcao[2];
+    char novoNomeArq[TAMMAX_DEST];
+    int selecao;
+     int novoTamanho;
+
+    while(opcao[0] != 'N'){
+
+        printf("*****[CONFIGURAÇÕES]*****\n");
+        printf("Destino dos Dados = \"%s\"\n", locacao_dados);
+        printf("Auto-Save = %s\n", printarEstado(*auto_save));
+        printf("Modo Cores = %s\n", printarEstado(*modo_cores));
+        printf("Número Máximo de Contatos = %i\n", *TAMMAX_CONTATOS);
+        printf("Deseja editar alguma configuração? (S/N): ");
+        lerOpcao(&opcao);
+        
+        if (opcao[0] != 'N'){
+
+            printf("\n-------------------------------\n");
+            printf("[1] Destino dos Dados = \"%s\"\n", locacao_dados);
+            printf("[2] Auto-Save = %s\n", printarEstado(*auto_save));
+            printf("[3] Modo Cores = %s\n", printarEstado(*modo_cores));
+            printf("[4] Número Máximo de Contatos = %i\n", *TAMMAX_CONTATOS);
+            printf("Qual opção deseja selecionar?: ");
+            selecao = lerSelecao(4);
+
+            switch (selecao){
+            case 1:
+                printf("Digite a novo nome do arquivo: ");
+                lerFormatStr(novoNomeArq, TAMMAX_DEST-3, FALSE);
+                tratarNomeArquivo(novoNomeArq);
+                printf("Confirma o novo nome do arquivo? (S/N): ");
+                strcpy(opcao, "");
+                lerOpcao(&opcao);
+                if(opcao[0] == 'S'){
+                    printf("Modificação efetuada.\n");
+                    strcpy(locacao_dados, "");
+                    strcpy(locacao_dados, novoNomeArq);
+                }else{
+                    printf("Edição cancelada.\n");
+                }
+                break;
+            case 2:
+                *auto_save = !(*auto_save);
+                printf("Modificação efetuada.\n\n");
+                break;
+            case 3:
+                *modo_cores = !(*modo_cores);
+                printf("Modificação efetuada.\n\n");
+                break;
+            case 4:
+                printf("Digite o novo valor máximo de contatos: ");
+                novoTamanho = lerNum();
+                printf("Confirma o novo valor máximo de contatos? (S/N): ");
+                strcpy(opcao, "");
+                lerOpcao(&opcao);
+
+                if(opcao[0] == 'S'){
+                    printf("Modificação efetuada.\n\n");
+                    *TAMMAX_CONTATOS = novoTamanho;
+                }else{
+                    printf("Edição cancelada.\n");
+                }
+
+                break;
+            default:
+                break;
+
+            }
+
+            gravarConfiguracoes(locacao_dados, *auto_save, *modo_cores, *TAMMAX_CONTATOS);
+
+        }
+
+    
+    }
+
+
+}
+void gravarConfiguracoes(char* locacao_dados, int auto_save, int modo_cores, int TAMMAX_CONTATOS){
+    FILE *arqConfig = NULL;
+    arqConfig = fopen ("config.ini", "w");
+
+    fprintf(arqConfig, "arquivo_dados=\"%s\"\n", locacao_dados);
+    fprintf(arqConfig, "auto_save=%i\n", auto_save);
+    fprintf(arqConfig, "modo_cores=%i\n", modo_cores);
+    fprintf(arqConfig, "num_max_contatos=%i\n", TAMMAX_CONTATOS);
+
+    fclose(arqConfig);
+    arqConfig = NULL;
+
+    
+    return 0;
+}
+
 //FUNÇÕES PRINCIPAIS
-void lerContatos(int *total){
+void lerContatos(int *total, int auto_save){
     int parar = FALSE;
     char opcao[2];
 
@@ -725,7 +960,6 @@ void lerContatos(int *total){
 
             // LEITURA DO NOME
             printf("Digite seu nome: ");
-            getchar();
             lerFormatStr(agenda.contato[i].nome, TAMMAX_NOME, FALSE);
 
             // LEITURA DO TIPO DO ENDEREÇO
@@ -746,7 +980,7 @@ void lerContatos(int *total){
 
             // LEITURA DO NÚMERO DA CASA
             printf("Digite o número da casa ( - Sem número): ");
-            agenda.contato[i].numCasa = lerNumCasa();
+            agenda.contato[i].numCasa = lerNum();
 
             // LEITURA DO CEP
             printf("Digite seu CEP: ");
@@ -792,7 +1026,6 @@ void lerContatos(int *total){
                 strcpy(agenda.contato[i].nota, " ");
             }else{
                 printf("Digite uma nota: ");
-                getchar();
 
                 lerFormatStr(agenda.contato[i].nota, TAMMAX_NOTA, FALSE);
             }
@@ -809,10 +1042,13 @@ void lerContatos(int *total){
 
 
         ordenarPorNome(*total);
-        salvarArquivo(*total);
+
+        if(auto_save){
+            salvarArquivo(*total);
+        }
     }
 }
-void excluirContato(int *total){
+void excluirContato(int *total, int auto_save){
     int pos;
     char opcao[2];
 
@@ -822,7 +1058,6 @@ void excluirContato(int *total){
         }
 
         printf("Digite o número do contato que deseja excluir: ");
-        getchar();
         pos = lerSelecao(*total);
         pos--;
 
@@ -837,9 +1072,12 @@ void excluirContato(int *total){
     printf("Contato excluído!\n");
 
     (*total)--;
-    salvarArquivo(*total);
+
+    if(auto_save){
+        salvarArquivo(*total);
+    }
 }
-void editarContato(int total){
+void editarContato(int total, int auto_save){
     
     int ctt, opcao;
     int contadorOpcoes = 1;
@@ -924,7 +1162,7 @@ void editarContato(int total){
     case 4:
         while (conf[0] != 'S'){
             printf("[CONTATO: %i] Digite o número da sua casa: ", ctt+1);
-            numCasa = lerNumCasa();
+            numCasa = lerNum();
             printf("Confirma a modificação? (S/N): ");
             lerOpcao(&conf);
         }
@@ -1025,7 +1263,9 @@ void editarContato(int total){
     }
 
     ordenarPorNome(ctt);
-    salvarArquivo(total);
+    if(auto_save){
+        salvarArquivo(total);
+    }
     printf("Alteração Feita!\n");
     printf("\n");
 }
@@ -1059,7 +1299,6 @@ void consultarContato(int total){
     int foiEncontrado = FALSE;
     
     printf("Digite o nome a ser consultado: ");
-    getchar();
     lerFormatStr(nomeConsultado, TAMMAX_NOME, FALSE);
 
     for (int i = 0; i < total; i++){
