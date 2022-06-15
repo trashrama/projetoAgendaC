@@ -38,7 +38,6 @@ struct st_pessoa{
     enum {Twitter=1, Facebook, Instagram, GitHub, LinkedIn}tipoRedeSocial;
     int numCasa;
 };
-
 struct st_agenda{
     struct st_pessoa contato[TAMMAX_AGENDA];
     struct st_pessoa aux;
@@ -66,8 +65,9 @@ void listarContatos(int total);
 void salvarArquivo(int total);
 void consultarContato(int total);
 void ordenarPorNome(int total);
-void lerConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores,  int* TAMMAX_CONTATOS);
-
+void lerConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores);
+void gravarConfiguracoes(char* locacao_dados, int auto_save, int modo_cores);
+void editarConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores);
 void lerFormatStr(char *var, int tamanho, int tamanhoEhFixo);
 
 char* printarNome(char *nome);
@@ -75,6 +75,7 @@ char* printarEnumerados(int opcao, int pos);
 char* printarTel(char telefone[TAMMAX_TEL]);
 char* printarCep(char cep[]);
 char* printarEstado(int booleana);
+char* tratarNomeArquivo(char *string);
 
 int verificarEspacos(char *nome);
 int lerSelecao(int u);
@@ -91,9 +92,8 @@ int main(int argc, char const *argv[]){
     char locacao_dados[TAMMAX_DEST];
     int auto_save;
     int modo_cores;
-    long int TAMMAX_CONTATOS;
 
-    lerConfiguracoes(locacao_dados, &auto_save, &modo_cores, &TAMMAX_CONTATOS);
+    lerConfiguracoes(locacao_dados, &auto_save, &modo_cores);
 
     while(opcao != 7){
         //deixarCiano();
@@ -129,7 +129,7 @@ int main(int argc, char const *argv[]){
                 excluirContato(&totalContatos, auto_save);
                 break;
             case 6:
-                editarConfiguracoes(locacao_dados, &auto_save, &modo_cores, &TAMMAX_CONTATOS);
+                editarConfiguracoes(locacao_dados, &auto_save, &modo_cores);
                 break;
             case 7:
                 printf("Saindo do Programa...\n");
@@ -761,7 +761,7 @@ char* tratarNomeArquivo(char *string){
     
 
 }
-void lerConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores,  int* TAMMAX_CONTATOS){
+void lerConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores){
 
     FILE *arqConfig = NULL;
     char linha[TAMMAX_LINHA_ARQ];
@@ -778,7 +778,6 @@ void lerConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores,  int
         fprintf(arqConfig, "arquivo_dados=\"dados.csv\"\n");
         fprintf(arqConfig, "auto_save=%i\n", TRUE);
         fprintf(arqConfig, "modo_cores=%i\n", FALSE);
-        fprintf(arqConfig, "num_max_contatos=%i\n", 5);
 
         fclose(arqConfig);
         arqConfig = fopen ("config.ini", "r");
@@ -828,15 +827,6 @@ void lerConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores,  int
 
             *modo_cores = atoi(bufferAtoi);
             strcpy(bufferAtoi, "");
-
-            break;
-        case 3:
-            strcpy(bufferAtoi, "");
-            strncpy(bufferAtoi, &linha[comecoDados], (strlen(linha)-comecoDados-1) );
-            bufferAtoi[(strlen(linha)-comecoDados-1)] = '\0';
-            *TAMMAX_CONTATOS = atoi(bufferAtoi);
-            strcpy(bufferAtoi, "");
-
             break;
         }
         numLinha++;
@@ -846,11 +836,10 @@ void lerConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores,  int
     arqConfig = NULL;
 
 }
-void editarConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores,  int* TAMMAX_CONTATOS){
+void editarConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores){
     char opcao[2];
     char novoNomeArq[TAMMAX_DEST];
     int selecao;
-     int novoTamanho;
 
     while(opcao[0] != 'N'){
 
@@ -858,7 +847,6 @@ void editarConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores,  
         printf("Destino dos Dados = \"%s\"\n", locacao_dados);
         printf("Auto-Save = %s\n", printarEstado(*auto_save));
         printf("Modo Cores = %s\n", printarEstado(*modo_cores));
-        printf("Número Máximo de Contatos = %i\n", *TAMMAX_CONTATOS);
         printf("Deseja editar alguma configuração? (S/N): ");
         lerOpcao(&opcao);
         
@@ -868,9 +856,8 @@ void editarConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores,  
             printf("[1] Destino dos Dados = \"%s\"\n", locacao_dados);
             printf("[2] Auto-Save = %s\n", printarEstado(*auto_save));
             printf("[3] Modo Cores = %s\n", printarEstado(*modo_cores));
-            printf("[4] Número Máximo de Contatos = %i\n", *TAMMAX_CONTATOS);
             printf("Qual opção deseja selecionar?: ");
-            selecao = lerSelecao(4);
+            selecao = lerSelecao(3);
 
             switch (selecao){
             case 1:
@@ -896,27 +883,12 @@ void editarConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores,  
                 *modo_cores = !(*modo_cores);
                 printf("Modificação efetuada.\n\n");
                 break;
-            case 4:
-                printf("Digite o novo valor máximo de contatos: ");
-                novoTamanho = lerNum();
-                printf("Confirma o novo valor máximo de contatos? (S/N): ");
-                strcpy(opcao, "");
-                lerOpcao(&opcao);
-
-                if(opcao[0] == 'S'){
-                    printf("Modificação efetuada.\n\n");
-                    *TAMMAX_CONTATOS = novoTamanho;
-                }else{
-                    printf("Edição cancelada.\n");
-                }
-
-                break;
             default:
                 break;
 
             }
 
-            gravarConfiguracoes(locacao_dados, *auto_save, *modo_cores, *TAMMAX_CONTATOS);
+            gravarConfiguracoes(locacao_dados, *auto_save, *modo_cores);
 
         }
 
@@ -925,14 +897,13 @@ void editarConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores,  
 
 
 }
-void gravarConfiguracoes(char* locacao_dados, int auto_save, int modo_cores, int TAMMAX_CONTATOS){
+void gravarConfiguracoes(char* locacao_dados, int auto_save, int modo_cores){
     FILE *arqConfig = NULL;
     arqConfig = fopen ("config.ini", "w");
 
     fprintf(arqConfig, "arquivo_dados=\"%s\"\n", locacao_dados);
     fprintf(arqConfig, "auto_save=%i\n", auto_save);
     fprintf(arqConfig, "modo_cores=%i\n", modo_cores);
-    fprintf(arqConfig, "num_max_contatos=%i\n", TAMMAX_CONTATOS);
 
     fclose(arqConfig);
     arqConfig = NULL;
@@ -945,6 +916,21 @@ void gravarConfiguracoes(char* locacao_dados, int auto_save, int modo_cores, int
 void lerContatos(int *total, int auto_save){
     int parar = FALSE;
     char opcao[2];
+
+    char nome[TAMMAX_NOME], endereco[TAMMAX_ENDERECO], cep[TAMMAX_CEP], telefone[TAMMAX_TEL];
+    char nota[TAMMAX_NOTA], email[TAMMAX_EMAIL], redeSocial[TAMMAX_RS];
+    enum {Alameda=1, Avenida, Praca, Rua, Travessa, Rodovia}tipoEndereco;
+    enum {Celular=1, Comercial, Fixo, Pessoal, Fax, Personalizado}tipoContato;
+    enum {Twitter=1, Facebook, Instagram, GitHub, LinkedIn}tipoRedeSocial;
+    int numCasa;
+
+    strcpy(nome, "");
+    strcpy(endereco, "");
+    strcpy(telefone, "");
+    strcpy(email, "");
+    strcpy(cep, "");
+    strcpy(redeSocial, "");
+    strcpy(nota, "");
 
     //buffer é uma variável que o email será inserido temporariamente.
     char buffer[TAMMAX_EMAIL];
@@ -960,7 +946,7 @@ void lerContatos(int *total, int auto_save){
 
             // LEITURA DO NOME
             printf("Digite seu nome: ");
-            lerFormatStr(agenda.contato[i].nome, TAMMAX_NOME, FALSE);
+            lerFormatStr(nome, TAMMAX_NOME, FALSE);
 
             // LEITURA DO TIPO DO ENDEREÇO
             printf("[1] Alameda \n");
@@ -971,25 +957,25 @@ void lerContatos(int *total, int auto_save){
             printf("[6] Rodovia \n");
 
             printf("Digite o tipo do endereço: ");
-            agenda.contato[i].tipoEndereco = lerSelecao(NUMOPCOES_END);
+            tipoEndereco = lerSelecao(NUMOPCOES_END);
             
 
             // LEITURA DO ENDEREÇO
             printf("Digite seu endereço: ");
-            lerFormatStr(agenda.contato[i].endereco, TAMMAX_ENDERECO, FALSE);
+            lerFormatStr(endereco, TAMMAX_ENDERECO, FALSE);
 
             // LEITURA DO NÚMERO DA CASA
             printf("Digite o número da casa ( - Sem número): ");
-            agenda.contato[i].numCasa = lerNum();
+            numCasa = lerNum();
 
             // LEITURA DO CEP
             printf("Digite seu CEP: ");
-            lerFormatStr(agenda.contato[i].cep, TAMMAX_CEP, TRUE);
+            lerFormatStr(cep, TAMMAX_CEP, TRUE);
 
 
             //LEITURA DO NÚMERO DE TELEFONE
             printf("Digite o número do telefone (com DDD): ");
-            lerFormatStr(agenda.contato[i].telefone, TAMMAX_TEL, TRUE);
+            lerFormatStr(telefone, TAMMAX_TEL, TRUE);
 
             //LEITURA DO TIPO DE CONTATO
             printf("[1] Celular \n");
@@ -999,11 +985,11 @@ void lerContatos(int *total, int auto_save){
             printf("[5] Fax \n");
             printf("[6] Personalizado \n");
             printf("Digite o tipo do contato: ");
-            agenda.contato[i].tipoContato = lerSelecao(NUMOPCOES_CTT);
+            tipoContato = lerSelecao(NUMOPCOES_CTT);
 
             // LEITURA DO E-MAIL
             lerEmail(&buffer);
-            strcpy(agenda.contato[i].email, buffer);
+            strcpy(email, buffer);
 
             // LEITURA DA NOME DE USUÁRIO DA REDE SOCIAL
             printf("[1] Twitter \n");
@@ -1012,10 +998,10 @@ void lerContatos(int *total, int auto_save){
             printf("[4] GitHub \n");
             printf("[5] LinkedIn \n");
             printf("Digite o tipo da rede social: ");
-            agenda.contato[i].tipoRedeSocial = lerSelecao(NUMOPCOES_RS);
+            tipoRedeSocial = lerSelecao(NUMOPCOES_RS);
 
-            printf("Digite o seu nome de usuário do %s: ", printarEnumerados(3, agenda.contato[i].tipoRedeSocial));
-            lerFormatStr(agenda.contato[i].redeSocial, TAMMAX_RS, FALSE);
+            printf("Digite o seu nome de usuário do %s: ", printarEnumerados(3, tipoRedeSocial));
+            lerFormatStr(redeSocial, TAMMAX_RS, FALSE);
 
             // LEITURA DA NOTA
             printf("Deseja adicionar uma nota? (S/N): ");
@@ -1023,14 +1009,45 @@ void lerContatos(int *total, int auto_save){
 
 
             if (opcao[0] == 'N'){
-                strcpy(agenda.contato[i].nota, " ");
+                strcpy(nota, " ");
             }else{
                 printf("Digite uma nota: ");
 
-                lerFormatStr(agenda.contato[i].nota, TAMMAX_NOTA, FALSE);
+                lerFormatStr(nota, TAMMAX_NOTA, FALSE);
             }
 
             // LEITURA DE CONTINUAÇÃO
+            printf("Deseja confirmar as informações? (S/N): ");
+            lerOpcao(&opcao);
+            if (opcao[0] == 'N'){
+                printf("Adição Cancelada.\n ");
+                return 0;
+            }else{
+                //copiar nome para struct
+
+                strcpy(agenda.contato[i].nome, nome);
+                //copiar tipoEndereco para struct
+                agenda.contato[i].tipoEndereco = tipoEndereco;
+                //copiar endereco para struct
+                strcpy(agenda.contato[i].endereco, endereco);
+                //copiar num da casa
+                agenda.contato[i].numCasa = numCasa;
+                //copiar cep
+                strcpy(agenda.contato[i].cep, cep);
+                //copiar telefone
+                strcpy(agenda.contato[i].telefone, telefone);
+                //copiar tipoContato
+                agenda.contato[i].tipoContato = tipoContato;
+                //copiar e-mail
+                strcpy(agenda.contato[i].email, email);
+                //copiar tipo da rede social
+                agenda.contato[i].tipoRedeSocial = tipoRedeSocial;
+                //copiar usuario da rede social
+                strcpy(agenda.contato[i].redeSocial, redeSocial);
+                //copiar nota
+                strcpy(agenda.contato[i].nota, nota);
+            }
+
             printf("Deseja adicionar mais alguém? (S/N): ");
             lerOpcao(&opcao);
             if (opcao[0] == 'N'){
@@ -1040,7 +1057,7 @@ void lerContatos(int *total, int auto_save){
             (*total)++;
         }
 
-
+        
         ordenarPorNome(*total);
 
         if(auto_save){
@@ -1329,6 +1346,3 @@ void consultarContato(int total){
 }
 
 /* unicamente, por: SANT! */
-
-
-//https://imgur.com/a/gK42Nae erros recentews
