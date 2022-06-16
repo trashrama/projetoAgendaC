@@ -22,7 +22,7 @@
 #define TAMMAX_TEL 12
 #define TAMMAX_EMAIL 50
 //TAMMAX_RS é uma pseucostante para o nome de usuário rede social.
-#define TAMMAX_RS 20
+#define TAMMAX_RS 15
 #define TAMMAX_CEP 9
 #define TAMMAX_NOTA 20
 //TAMMAX_LINHA_ARQ é uma pseucostante para o tamanho da linha do arquivo.
@@ -52,22 +52,32 @@ void deixarAzul ();
 void deixarRoxo ();
 void deixarCiano ();
 void deixarBranco ();
+
+void deixarPretoNegrito ();
+void deixarVermelhoNegrito ();
+void deixarVerdeNegrito ();
+void deixarAmareloNegrito ();
+void deixarAzulNegrito ();
+void deixarRoxoNegrito ();
+void deixarCianoNegrito ();
+void deixarBrancoNegrito ();
+
 void resetarCores();
 void tirarEspacos(char *string);
 void deixarMinusculo(char *string);
 void capitalizarStr(char *string);
 void lerEmail(char* email);
 void lerOpcao(char* opcao);
-void lerContatos(int *total, int auto_save);
-void excluirContato(int *total, int auto_save);
-void editarContato(int total, int auto_save);
-void listarContatos(int total);
-void salvarArquivo(int total);
-void consultarContato(int total);
+void lerContatos(int *total, int auto_save, int modo_cores, char *locacao_dados);
+void excluirContato(int *total, int auto_save, int modo_cores, char *locacao_dados);
+void editarContato(int total, int auto_save, int modo_cores, char *locacao_dados);
+void listarContatos(int total, int ehTabulizada, int modo_cores);
+void salvarArquivo(int total, char *locacao_dados);
+void consultarContato(int total, int modo_cores);
 void ordenarPorNome(int total);
-void lerConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores);
-void gravarConfiguracoes(char* locacao_dados, int auto_save, int modo_cores);
-void editarConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores);
+void lerConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores, int* list_tabulizada);
+void gravarConfiguracoes(char* locacao_dados, int auto_save, int modo_cores, int list_tabulizada);
+void editarConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores, int* list_tabulizada);
 void lerFormatStr(char *var, int tamanho, int tamanhoEhFixo);
 
 char* printarNome(char *nome);
@@ -80,26 +90,37 @@ char* tratarNomeArquivo(char *string);
 int verificarEspacos(char *nome);
 int lerSelecao(int u);
 int lerNum();
-int lerArquivo();
+int lerArquivo(char* locacao_dados);
 
 int main(int argc, char const *argv[]){
     
     setlocale ( LC_ALL, "" );
 
-    int totalContatos = lerArquivo();
-    int opcao = 0; /* A variável 'totalContatos' será armazenada em um arquivo que servirá de contador, ao ler o arquivo. */
-    
     char locacao_dados[TAMMAX_DEST];
     int auto_save;
     int modo_cores;
+    int list_tabulizada;
+    int opcao = 0; 
 
-    lerConfiguracoes(locacao_dados, &auto_save, &modo_cores);
+    lerConfiguracoes(locacao_dados, &auto_save, &modo_cores, &list_tabulizada);
+
+    
+    int totalContatos = lerArquivo(locacao_dados);
+    /* A variável 'totalContatos' será armazenada em um arquivo que servirá de contador, ao ler o arquivo. */
+
+
 
     while(opcao != 7){
-        //deixarCiano();
+
+        if(modo_cores)
+        deixarVermelhoNegrito();
+
         printf("*********** AGENDA ***********\n");
-        deixarAmarelo();
-        printf("1. Ver Agenda\n");
+
+        if(modo_cores)
+        deixarAzulNegrito();
+
+        printf("1. Listar Contatos\n");
         printf("2. Adicionar Contatos\n");
         printf("3. Editar Contato\n");
         printf("4. Consultar Contato\n");
@@ -107,41 +128,1128 @@ int main(int argc, char const *argv[]){
         printf("6. Configurações\n");
         printf("7. Sair\n");
 
-        deixarAzul();
+        if(modo_cores)
+        deixarRoxo();
+
         printf("\nEscolha a opção: ");
-        resetarCores();
+
+        if(modo_cores)
+        deixarAzulNegrito();
+
         opcao = lerSelecao(7);
+
+        if(modo_cores)
+        resetarCores();
 
         switch (opcao){
             case 1:
-                listarContatos(totalContatos);
+                listarContatos(totalContatos, list_tabulizada, modo_cores);
                 break;
             case 2:
-                lerContatos(&totalContatos, auto_save);
+                lerContatos(&totalContatos, auto_save, modo_cores, locacao_dados);
                 break;
             case 3:
-                editarContato(totalContatos, auto_save);
+                editarContato(totalContatos, auto_save, modo_cores, locacao_dados);
                 break;
             case 4:
-                consultarContato(totalContatos);
+                consultarContato(totalContatos, modo_cores);
                 break;
             case 5:
-                excluirContato(&totalContatos, auto_save);
+                excluirContato(&totalContatos, auto_save, modo_cores, locacao_dados);
                 break;
             case 6:
-                editarConfiguracoes(locacao_dados, &auto_save, &modo_cores);
+                editarConfiguracoes(locacao_dados, &auto_save, &modo_cores, &list_tabulizada);
                 break;
             case 7:
+                if(modo_cores)
+                deixarRoxo();
                 printf("Saindo do Programa...\n");
-                salvarArquivo(totalContatos);
+                salvarArquivo(totalContatos, locacao_dados);
                 break;
             default:
                 printf("Opção inválida!\n");
-                getchar();
                 break;
         }
     }
     return 0;
+}
+
+//FUNÇÕES PRINCIPAIS
+void lerContatos(int *total, int auto_save, int modo_cores, char* locacao_dados){
+    int parar = FALSE;
+    char opcao[2];
+
+    char nome[TAMMAX_NOME], endereco[TAMMAX_ENDERECO], cep[TAMMAX_CEP], telefone[TAMMAX_TEL];
+    char nota[TAMMAX_NOTA], email[TAMMAX_EMAIL], redeSocial[TAMMAX_RS];
+    enum {Alameda=1, Avenida, Praca, Rua, Travessa, Rodovia}tipoEndereco;
+    enum {Celular=1, Comercial, Fixo, Pessoal, Fax, Personalizado}tipoContato;
+    enum {Twitter=1, Facebook, Instagram, GitHub, LinkedIn}tipoRedeSocial;
+    int numCasa;
+
+    strcpy(nome, "");
+    strcpy(endereco, "");
+    strcpy(telefone, "");
+    strcpy(email, "");
+    strcpy(cep, "");
+    strcpy(redeSocial, "");
+    strcpy(nota, "");
+
+    //buffer é uma variável que o email será inserido temporariamente.
+    char buffer[TAMMAX_EMAIL];
+
+    if(modo_cores)
+    deixarVermelhoNegrito();
+    printf("++++++++++++ ADIÇÃO DE CON+A+OS ++++++++++++\n");
+
+    if (*total >= TAMMAX_AGENDA){
+        if(modo_cores)
+        deixarAmareloNegrito();
+        printf("Não é possível registrar mais contatos!\nTOTAL ATINGIDO!\n\n");
+    }else{
+
+        while (parar != TRUE){
+
+            int i = *total;
+
+            // LEITURA DO NOME
+            if(modo_cores)
+            deixarRoxo();
+            printf("Digite seu nome: ");
+            if(modo_cores)
+            deixarAzulNegrito();
+            lerFormatStr(nome, TAMMAX_NOME, FALSE);
+
+            // LEITURA DO TIPO DO ENDEREÇO
+            if(modo_cores)
+            deixarRoxo();
+            printf("[1] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Alameda \n");
+            
+            if(modo_cores)
+            deixarRoxo();
+            printf("[2] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Avenida \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("[3] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Praça \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("[4] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Rua \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("[5] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Travessa \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("[6] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Rodovia \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("Digite o tipo do endereço: ");
+            if(modo_cores)
+            deixarAzulNegrito();
+            tipoEndereco = lerSelecao(NUMOPCOES_END);
+
+            // LEITURA DO ENDEREÇO
+            if(modo_cores)
+            deixarRoxo();
+            printf("Digite seu endereço: ");
+            if(modo_cores)
+            deixarAzulNegrito();
+            lerFormatStr(endereco, TAMMAX_ENDERECO, FALSE);
+
+            // LEITURA DO NÚMERO DA CASA
+            if(modo_cores)
+            deixarRoxo();
+            printf("Digite o número da casa ( - Sem número): ");
+            if(modo_cores)
+            deixarAzulNegrito();
+            numCasa = lerNum();
+
+            // LEITURA DO CEP
+            if(modo_cores)
+            deixarRoxo();
+            printf("Digite seu CEP: ");
+            if(modo_cores)
+            deixarAzulNegrito();
+            lerFormatStr(cep, TAMMAX_CEP, TRUE);
+
+            //LEITURA DO NÚMERO DE TELEFONE
+            if(modo_cores)
+            deixarRoxo();
+            printf("Digite o número do telefone (com DDD): ");
+            if(modo_cores)
+            deixarAzulNegrito();
+            lerFormatStr(telefone, TAMMAX_TEL, TRUE);
+
+            //LEITURA DO TIPO DE CONTATO
+            if(modo_cores)
+            deixarRoxo();
+            printf("[1] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Celular \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("[2] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Comercial \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("[3] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Fixo \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("[4] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Pessoal \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("[5] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Fax \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("[6] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Personalizado \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("Digite o tipo do contato: ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            tipoContato = lerSelecao(NUMOPCOES_CTT);
+
+            // LEITURA DO E-MAIL
+            if(modo_cores)
+            deixarRoxo();
+            printf("Digite seu e-mail: ");
+            if(modo_cores)
+            deixarAzulNegrito();
+            lerEmail(&buffer);
+            strcpy(email, buffer);
+
+            // LEITURA DA NOME DE USUÁRIO DA REDE SOCIAL
+            if(modo_cores)
+            deixarRoxo();
+            printf("[1] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Twitter \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("[2] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Facebook \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("[3] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Instagram \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("[4] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("GitHub \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("[5] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("LinkedIn \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("Digite o tipo da rede social: ");
+            if(modo_cores)
+            deixarAzulNegrito();
+            tipoRedeSocial = lerSelecao(NUMOPCOES_RS);
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("Digite o seu nome de usuário do ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("%s: ", printarEnumerados(3, tipoRedeSocial));
+            if(modo_cores)
+            deixarAzulNegrito();
+            lerFormatStr(redeSocial, TAMMAX_RS, FALSE);
+
+            // LEITURA DA NOTA
+            if(modo_cores)
+            deixarRoxo();
+            printf("Deseja adicionar uma nota? (S/N): ");
+            if(modo_cores)
+            deixarAzulNegrito();
+            lerOpcao(&opcao);
+
+
+            if (opcao[0] == 'N'){
+                strcpy(nota, " ");
+            }else{
+                if(modo_cores)
+                deixarRoxo();
+                printf("Digite uma nota: ");
+                if(modo_cores)
+                deixarAzulNegrito();
+                lerFormatStr(nota, TAMMAX_NOTA, FALSE);
+            }
+
+            // LEITURA DE CONTINUAÇÃO
+            if(modo_cores)
+            deixarRoxo();
+            printf("Deseja confirmar as informações? (S/N): ");
+            if(modo_cores)
+            deixarAzulNegrito();
+            lerOpcao(&opcao);
+            if (opcao[0] == 'N'){
+                if(modo_cores)
+                deixarRoxo();
+                printf("Adição Cancelada.\n ");
+                return 0;
+            }else{
+                //copiar nome para struct
+                strcpy(agenda.contato[i].nome, nome);
+                //copiar tipoEndereco para struct
+                agenda.contato[i].tipoEndereco = tipoEndereco;
+                //copiar endereco para struct
+                strcpy(agenda.contato[i].endereco, endereco);
+                //copiar num da casa
+                agenda.contato[i].numCasa = numCasa;
+                //copiar cep
+                strcpy(agenda.contato[i].cep, cep);
+                //copiar telefone
+                strcpy(agenda.contato[i].telefone, telefone);
+                //copiar tipoContato
+                agenda.contato[i].tipoContato = tipoContato;
+                //copiar e-mail
+                strcpy(agenda.contato[i].email, email);
+                //copiar tipo da rede social
+                agenda.contato[i].tipoRedeSocial = tipoRedeSocial;
+                //copiar usuario da rede social
+                strcpy(agenda.contato[i].redeSocial, redeSocial);
+                //copiar nota
+                strcpy(agenda.contato[i].nota, nota);
+            }
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("Deseja adicionar mais alguém? (S/N): ");
+            if(modo_cores)
+            deixarAzulNegrito();
+            lerOpcao(&opcao);
+            if (opcao[0] == 'N'){
+                parar = TRUE;
+            }
+            
+            (*total)++;
+        }
+
+        
+        ordenarPorNome(*total);
+
+        if(auto_save){
+            salvarArquivo(*total, locacao_dados);
+        }
+    }
+}
+void excluirContato(int *total, int auto_save, int modo_cores, char* locacao_dados){
+    int pos;
+    char opcao[2];
+
+    if(modo_cores)
+    deixarVermelhoNegrito();
+    printf("----------EXCLUSÃO DE CONTATOS----------\n");
+
+    while (opcao[0] != 'S'){
+        for (int i = 0; i < *total; i++){
+            if(modo_cores)
+            deixarRoxo();
+            printf("[%i] ", i+1);
+            if(modo_cores)
+            deixarAzulNegrito();
+            printf("Nome: ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("%s\n", agenda.contato[i].nome);
+        }
+
+        if(modo_cores)
+        deixarRoxo();
+        printf("Digite o número do contato que deseja excluir: ");
+        if(modo_cores)
+        deixarAzulNegrito();
+        pos = lerSelecao(*total);
+        pos--;
+
+        if(modo_cores)
+        deixarRoxo();
+        printf("Deseja confirmar a exclusão de ");
+
+        if(modo_cores)
+        deixarRoxoNegrito();
+        printf("%s", printarNome(agenda.contato[pos].nome));
+
+        if(modo_cores)
+        deixarRoxo();
+        printf("? (S/N): ");
+
+        if(modo_cores)
+        deixarAzulNegrito();
+        lerOpcao(&opcao);
+
+        if (opcao[0] == 'N'){
+            printf("Edição cancelada.\n");
+            return 0;
+        }
+        
+    }
+
+    for (int i = pos; i < *total; i++){
+        agenda.contato[i] = agenda.contato[i+1];
+    }
+
+    if(modo_cores)
+    deixarRoxo();
+    printf("Contato excluído!\n");
+
+    (*total)--;
+
+    if(auto_save){
+        salvarArquivo(*total, locacao_dados);
+    }
+}
+void editarContato(int total, int auto_save, int modo_cores, char *locacao_dados){
+    
+    int ctt, opcao;
+    int contadorOpcoes = 1;
+
+    char conf[2];
+    strcpy(conf, "");
+    
+    char nome[TAMMAX_NOME], endereco[TAMMAX_ENDERECO], cep[TAMMAX_CEP], telefone[TAMMAX_TEL];
+    char nota[TAMMAX_NOTA], email[TAMMAX_EMAIL], redeSocial[TAMMAX_RS];
+    enum {Alameda=1, Avenida, Praca, Rua, Travessa, Rodovia}tipoEndereco;
+    enum {Celular=1, Comercial, Fixo, Pessoal, Fax, Personalizado}tipoContato;
+    enum {Twitter=1, Facebook, Instagram, GitHub, LinkedIn}tipoRedeSocial;
+    int numCasa;
+
+
+    char* editaveis[50] = 
+    {
+        "Nome", "Tipo do Endereço", "Endereco", "Número da Casa", "CEP", "Número do Telefone",
+        "Tipo de Contato", "E-Mail", "Tipo da Rede Social", "Usuário da Rede Social", "Nota"            
+    };
+
+    if(modo_cores)
+    deixarVermelhoNegrito();
+    printf("\^\^\^\^\^\^EDIÇÃO DE CONTATOS\^\^\^\^\^\^\n");
+
+    for (int i = 0; i < total; i++){
+        if(modo_cores)
+        deixarRoxo();
+        printf("[%i] ", i+1);
+        if(modo_cores)
+        deixarAzulNegrito();
+        printf("Nome: ");
+        if(modo_cores)
+        deixarRoxoNegrito();
+        printf("%s\n", agenda.contato[i].nome);
+    }
+
+    if(modo_cores)    
+    deixarRoxo();
+    printf("Digite o número do contato que deseja alterar: ");
+    if(modo_cores)
+    deixarAzulNegrito();
+
+    ctt = lerSelecao(total);
+    ctt--;
+
+    printf("\n");
+    for (int i = 0; i < 11; i++){
+        
+        if(modo_cores)
+        deixarRoxoNegrito();
+        printf("[%i] ", contadorOpcoes);
+        if(modo_cores)
+        deixarRoxo();
+        printf("%s\n", editaveis[i]);
+        contadorOpcoes++;
+    }
+
+    if(modo_cores)
+    deixarRoxo();
+    printf("Digite a opção desejada para editar: ");
+    if(modo_cores)
+    deixarAzulNegrito();
+    opcao = lerSelecao(contadorOpcoes);
+    printf("\n");
+    
+    switch (opcao){
+    case 1:
+        while (conf[0] != 'S'){
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("[CONTATO: %i] ", ctt+1);
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("Digite seu nome: ");
+
+            if(modo_cores)
+            deixarAzulNegrito();
+            lerFormatStr(nome, TAMMAX_NOME, FALSE);
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("Confirma a modificação? (S/N): ");
+
+            if(modo_cores)
+            deixarAzulNegrito();
+            lerOpcao(&conf);
+            
+        }
+
+        strcpy(agenda.contato[ctt].nome, "");
+        strcpy(agenda.contato[ctt].nome, nome);
+        break;
+
+    case 2:
+        while (conf[0] != 'S'){
+            if(modo_cores)
+            deixarRoxo();
+            printf("[1] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Alameda \n");
+            
+            if(modo_cores)
+            deixarRoxo();
+            printf("[2] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Avenida \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("[3] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Praça \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("[4] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Rua \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("[5] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Travessa \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("[6] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Rodovia \n");
+
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("[CONTATO: %i] ", ctt+1);
+
+            if(modo_cores)
+            deixarRoxo();
+
+            printf("Digite o novo tipo de endereço: ");
+            tipoEndereco = lerSelecao(NUMOPCOES_END);
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("Confirma a modificação? (S/N): ");
+            if(modo_cores)
+            deixarAzulNegrito();
+            lerOpcao(&conf);
+        }
+        agenda.contato[ctt].tipoEndereco = tipoEndereco;
+        break;
+
+    case 3:
+        while (conf[0] != 'S'){
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("[CONTATO: %i] ", ctt+1);
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("Digite seu endereço: ");
+            
+            if(modo_cores)
+            deixarAzulNegrito();
+            lerFormatStr(endereco, TAMMAX_ENDERECO, FALSE);
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("Confirma a modificação? (S/N): ");
+
+            if(modo_cores)
+            deixarAzulNegrito();
+            lerOpcao(&conf);
+        }
+        strcpy(agenda.contato[ctt].endereco, "");
+        strcpy(agenda.contato[ctt].endereco, endereco);
+        break;
+
+    case 4:
+        while (conf[0] != 'S'){
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("[CONTATO: %i] ", ctt+1);
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("Digite o número da sua casa: ");
+
+
+            if(modo_cores)
+            deixarAzulNegrito();
+            numCasa = lerNum();
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("Confirma a modificação? (S/N): ");
+
+            if(modo_cores)
+            deixarAzulNegrito();
+            lerOpcao(&conf);
+        }
+        agenda.contato[ctt].numCasa = numCasa;
+        break;
+
+    case 5:
+        while (conf[0] != 'S'){
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("[CONTATO: %i] ", ctt+1);
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("Digite seu CEP: ");
+
+            if(modo_cores)
+            deixarAzulNegrito();
+            lerFormatStr(cep, TAMMAX_CEP, TRUE);
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("Confirma a modificação? (S/N): ");
+
+            if(modo_cores)
+            deixarAzulNegrito();
+            lerOpcao(&conf);
+        }
+        strcpy(agenda.contato[ctt].cep, "");
+        strcpy(agenda.contato[ctt].cep, cep);
+        break;
+
+    case 6:
+        while (conf[0] != 'S'){
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("[CONTATO: %i] ", ctt+1);
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("Digite seu telefone: ", ctt+1);
+
+            if(modo_cores)
+            deixarAzulNegrito();
+            lerFormatStr(telefone, TAMMAX_TEL, TRUE);
+            
+            if(modo_cores)
+            deixarRoxo();
+            printf("Confirma a modificação? (S/N): ");
+
+            if(modo_cores)
+            deixarAzulNegrito();
+            lerOpcao(&conf);
+        }
+        strcpy(agenda.contato[ctt].telefone, "");
+        strcpy(agenda.contato[ctt].telefone, telefone);
+        break;
+
+    case 7:
+        while (conf[0] != 'S'){
+           if(modo_cores)
+            deixarRoxo();
+            printf("[1] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Celular \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("[2] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Comercial \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("[3] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Fixo \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("[4] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Pessoal \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("[5] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Fax \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("[6] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Personalizado \n");
+
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("[CONTATO: %i] ", ctt+1);
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("Digite o tipo de contato: ");
+
+            if(modo_cores)
+            deixarAzulNegrito();
+            tipoContato = lerSelecao(NUMOPCOES_END);
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("Confirma a modificação? (S/N): ");
+
+            if(modo_cores)
+            deixarAzulNegrito();
+            lerOpcao(&conf);
+        }
+        agenda.contato[ctt].tipoContato = tipoContato;
+        break;
+
+    case 8:
+        while (conf[0] != 'S'){
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("Digite o seu email: ");
+
+            if(modo_cores)
+            deixarAzulNegrito();
+            lerEmail(&email);
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("Confirma a modificação? (S/N): ");
+
+            if(modo_cores)
+            deixarAzulNegrito();
+            lerOpcao(&conf);
+        }
+        strcpy(agenda.contato[ctt].email, "");
+        strcpy(agenda.contato[ctt].email, email);
+        break;
+
+    case 9:
+        while (conf[0] != 'S'){
+             if(modo_cores)
+            deixarRoxo();
+            printf("[1] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Twitter \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("[2] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Facebook \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("[3] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("Instagram \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("[4] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("GitHub \n");
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("[5] ");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("LinkedIn \n");
+
+
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("[CONTATO: %i] ", ctt+1);
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("Digite o tipo da rede social: ");
+            if(modo_cores)
+            deixarAzulNegrito();
+            tipoRedeSocial = lerSelecao(NUMOPCOES_RS);
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("Confirma a modificação? (S/N): ");
+            if(modo_cores)
+            deixarAzulNegrito();
+            lerOpcao(&conf);
+        }
+        agenda.contato[ctt].tipoRedeSocial = tipoRedeSocial;
+        break;
+
+   case 10:
+        while (conf[0] != 'S'){
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("[CONTATO: %i] ", ctt+1);
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("Digite o seu nome de usuário do");
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("%s: ", printarEnumerados(3, tipoRedeSocial));
+            
+            if(modo_cores)
+            deixarRoxo();
+            lerFormatStr(redeSocial, TAMMAX_RS, FALSE);
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("Confirma a modificação? (S/N): ");
+
+            if(modo_cores)
+            deixarAzulNegrito();
+            lerOpcao(&conf);
+        }
+        strcpy(agenda.contato[ctt].redeSocial, "");
+        strcpy(agenda.contato[ctt].redeSocial, redeSocial);
+        break;
+
+    case 11:
+        while (conf[0] != 'S'){
+            if(modo_cores)
+            deixarRoxoNegrito();
+            printf("[CONTATO: %i] ", ctt+1);
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("Digite uma nota: ");
+            if(modo_cores)
+            deixarAzulNegrito();
+            lerFormatStr(nota, TAMMAX_NOTA, FALSE);
+
+            if(modo_cores)
+            deixarRoxo();
+            printf("Confirma a modificação? (S/N): ");
+            if(modo_cores)
+            deixarAzulNegrito();
+            lerOpcao(&conf);
+        }
+        strcpy(agenda.contato[ctt].nota, "");
+        strcpy(agenda.contato[ctt].nota, nota);
+        break;
+
+    default:
+        break;
+    }
+
+    ordenarPorNome(ctt);
+    if(auto_save){
+        salvarArquivo(total, locacao_dados);
+    }
+    printf("Alteração Feita!\n");
+    printf("\n");
+}
+void listarContatos(int total, int ehTabulizada, int modo_cores){
+
+    char subStrNome[11];
+    char subStrEnd[11];
+    char subStrNt[11];
+    printf("\n");
+
+    if (total == 0){
+        if(modo_cores)
+        deixarAmareloNegrito();
+        printf("Ainda não há contatos registrados!\n");
+        sleep(1);
+    }else{
+
+        if(ehTabulizada){
+
+            if(modo_cores)
+            deixarVermelhoNegrito();
+
+            printf("============================================== LISTAGEM TABULADA ==============================================\n");
+            printf("%03s|%-10s|%-3s|%-10s|%-5s|%-12s|%-3s|%-20s |%-3s|%-10s|%-10s|\n",
+            "ID", "NOME", "T.E", "END.", "NUM.", "NUM PARA CONTATO ", "T.C ", "EMAIL", "R.S ", "USERNAME", "NOTA");
+            
+            if(modo_cores)
+            deixarAzulNegrito();
+
+            for (int c = 0; c < total; c++){
+                strncpy(subStrNome, printarNome(agenda.contato[c].nome), 10);
+                strncpy(subStrEnd, agenda.contato[c].endereco, 10);
+                strncpy(subStrNt, agenda.contato[c].nota, 10);
+
+                printf("%03i|%-10s|%-3s|%-10s|%-5i|%-12s|%-3s|%-20s |%-3s|%-10s|%-10s|\n\n",
+                c+1, subStrNome, printarEnumerados(1, agenda.contato[c].tipoEndereco), subStrEnd, agenda.contato[c].numCasa,
+                printarTel(agenda.contato[c].telefone), printarEnumerados(2, agenda.contato[c].tipoContato),
+                agenda.contato[c].email, printarEnumerados(3, agenda.contato[c].tipoRedeSocial), agenda.contato[c].redeSocial,
+                subStrNt);
+
+            }
+        }else{
+            if(modo_cores)
+            deixarVermelhoNegrito();
+
+            printf("======== LISTAGEM LINEAR ========\n");
+            printf("\n");
+            for (int c = 0; c < total; c++){
+                printf("=========== CONTATO"); 
+                if(modo_cores)
+                deixarAzulNegrito();
+                printf(" %i ", (c+1));
+                if(modo_cores)
+                deixarVermelhoNegrito();
+                printf("===========\n");
+
+                printf("Nome: ");
+                if(modo_cores)
+                deixarAzulNegrito();
+                printf("%s\n", printarNome(agenda.contato[c].nome));
+
+                if(modo_cores)
+                deixarVermelhoNegrito();
+                printf("Endereço: ");
+                if(modo_cores)
+                deixarAzulNegrito();
+                printf("%s %s, nº %i\n", printarEnumerados(1, agenda.contato[c].tipoEndereco), agenda.contato[c].endereco, agenda.contato[c].numCasa);
+                
+                if(modo_cores)
+                deixarVermelhoNegrito();
+                printf("CEP: ");
+                if(modo_cores)
+                deixarAzulNegrito();
+                printf("%s\n", printarCep(agenda.contato[c].cep));
+
+                if(modo_cores)
+                deixarVermelhoNegrito();
+                printf("Telefone: ");
+                if(modo_cores)
+                deixarAzulNegrito();
+                printf("%s\n", printarTel(agenda.contato[c].telefone));
+                
+                if(modo_cores)
+                deixarVermelhoNegrito();
+                printf("Tipo do Contato: ");
+                if(modo_cores)
+                deixarAzulNegrito();
+                printf("%s\n", printarEnumerados(2, agenda.contato[c].tipoContato));
+
+                if(modo_cores)
+                deixarVermelhoNegrito();
+                printf("E-mail: ");
+                if(modo_cores)
+                deixarAzulNegrito();
+                printf("%s\n", agenda.contato[c].email);
+
+                if(modo_cores)
+                deixarVermelhoNegrito();
+                printf("%s: ",  printarEnumerados(3, agenda.contato[c].tipoRedeSocial));
+                if(modo_cores)
+                deixarAzulNegrito();
+                printf("%s\n", agenda.contato[c].redeSocial);
+                
+                if(modo_cores)
+                deixarVermelhoNegrito();
+                printf("Nota: ");
+                if(modo_cores)
+                deixarAzulNegrito(); 
+                printf("%s\n", agenda.contato[c].nota);
+
+                if(modo_cores)
+                deixarVermelhoNegrito();
+            }
+        }
+    }
+    printf("\n===============================\n");
+
+    printf("\n");
+}
+void consultarContato(int total, int modo_cores){
+    char nomeConsultado[TAMMAX_NOME];
+    char* r;
+
+    int contResultados = 0;
+    // contResultados - Contador dos Resultados
+    int foiEncontrado = FALSE;
+
+    if(modo_cores)
+    deixarRoxo();
+
+    printf("Digite o nome a ser consultado: ");
+    if(modo_cores)
+    deixarAzulNegrito();
+    lerFormatStr(nomeConsultado, TAMMAX_NOME, FALSE);
+
+    for (int i = 0; i < total; i++){
+        r = strstr(agenda.contato[i].nome, nomeConsultado);
+        if (r != NULL){
+            foiEncontrado = TRUE;
+            contResultados++;
+
+            if(modo_cores)
+            deixarVermelhoNegrito();
+            printf("\n=============================\n%18s %i\n=============================\n", "RESULTADO", contResultados);
+            if(modo_cores)
+            deixarAzulNegrito();
+            printf(" %i ", (i+1));
+            if(modo_cores)
+            deixarVermelhoNegrito();
+            printf("===========\n");
+
+            printf("Nome: ");
+            if(modo_cores)
+            deixarAzulNegrito();
+            printf("%s\n", printarNome(agenda.contato[i].nome));
+
+            if(modo_cores)
+            deixarVermelhoNegrito();
+            printf("Endereço: ");
+            if(modo_cores)
+            deixarAzulNegrito();
+            printf("%s %s, nº %i\n", printarEnumerados(1, agenda.contato[i].tipoEndereco), agenda.contato[i].endereco, agenda.contato[i].numCasa);
+            
+            if(modo_cores)
+            deixarVermelhoNegrito();
+            printf("CEP: ");
+            if(modo_cores)
+            deixarAzulNegrito();
+            printf("%s\n", printarCep(agenda.contato[i].cep));
+
+            if(modo_cores)
+            deixarVermelhoNegrito();
+            printf("Telefone: ");
+            if(modo_cores)
+            deixarAzulNegrito();
+            printf("%s\n", printarTel(agenda.contato[i].telefone));
+            
+            if(modo_cores)
+            deixarVermelhoNegrito();
+            printf("Tipo do Contato: ");
+            if(modo_cores)
+            deixarAzulNegrito();
+            printf("%s\n", printarEnumerados(2, agenda.contato[i].tipoContato));
+
+            if(modo_cores)
+            deixarVermelhoNegrito();
+            printf("E-mail: ");
+            if(modo_cores)
+            deixarAzulNegrito();
+            printf("%s\n", agenda.contato[i].email);
+
+            if(modo_cores)
+            deixarVermelhoNegrito();
+            printf("%s: ",  printarEnumerados(3, agenda.contato[i].tipoRedeSocial));
+            if(modo_cores)
+            deixarAzulNegrito();
+            printf("%s\n", agenda.contato[i].redeSocial);
+            
+            if(modo_cores)
+            deixarVermelhoNegrito();
+            printf("Nota: ");
+            if(modo_cores)
+            deixarAzulNegrito(); 
+            printf("%s\n", agenda.contato[i].nota);
+
+            if(modo_cores)
+            deixarVermelhoNegrito();
+            printf("=============================");
+            
+        }
+    }
+
+    if (foiEncontrado == FALSE){
+        if(modo_cores)
+        deixarRoxo();
+        printf("Não há resultados.");
+    }
+
+    printf("\n");
 }
 
 //FUNÇÃO PARA LIMPAR TELA
@@ -156,35 +1264,93 @@ void limparTela (){
 //FUNÇÕES DE CORES - AUXILIARES - PS: Só funciona no terminal do linux por enquanto!
 void deixarPreto () {
     #ifdef __linux__
-          printf("\033[0;30m");
-    #elif _WIN32
-        system ( "cls" );
+        printf("\033[0;30m");     
     #endif
 
 }
 void deixarVermelho () {
-  printf("\033[031m");
+    #ifdef __linux__
+        printf("\033[0;31m");
+    #endif
 }
 void deixarVerde () {
-  printf("\033[032m");
+    #ifdef __linux__
+        printf("\033[0;32m");
+    #endif
 }
 void deixarAmarelo() {
-  printf("\033[033m");
+    #ifdef __linux__
+        printf("\033[0;33m");
+    #endif
 }
-void deixarAzul () {
-  printf("\033[034m");
+void deixarAzul() {
+    #ifdef __linux__
+        printf("\033[0;34m");
+    #endif
 }
-void deixarRoxo () {
-  printf("\033[1;35m");
+void deixarRoxo() {
+    #ifdef __linux__
+        printf("\033[0;35m");
+    #endif
 }
-void deixarCiano () {
-  printf("\033[1;36m");
+void deixarCiano() {
+    #ifdef __linux__
+        printf("\033[0;36m");
+    #endif
 }
-void deixarBranco () {
-  printf("\033[1;37m");
+void deixarBranco() {
+    #ifdef __linux__
+        printf("\033[0;37m");
+    #endif
 }
+
+void deixarPretoNegrito() {
+    #ifdef __linux__
+        printf("\033[1;30m");     
+    #endif
+
+}
+void deixarVermelhoNegrito () {
+    #ifdef __linux__
+        printf("\033[1;31m");
+    #endif
+}
+void deixarVerdeNegrito () {
+    #ifdef __linux__
+        printf("\033[1;32m");
+    #endif
+}
+void deixarAmareloNegrito() {
+    #ifdef __linux__
+        printf("\033[1;33m");
+    #endif
+}
+void deixarAzulNegrito () {
+    #ifdef __linux__
+        printf("\033[1;34m");
+    #endif
+}
+void deixarRoxoNegrito () {
+    #ifdef __linux__
+        printf("\033[1;35m");
+    #endif
+}
+void deixarCianoNegrito () {
+    #ifdef __linux__
+        printf("\033[1;36m");
+    #endif
+}
+void deixarBrancoNegrito () {
+    #ifdef __linux__
+        printf("\033[1;37m");
+    #endif
+}
+
 void resetarCores() {
-  printf("\033[0m");
+
+    #ifdef __linux__
+        printf("\033[0m");
+    #endif
 }
 
 //FUNÇÕES DE FORMATAÇÃO DE STRING
@@ -375,7 +1541,7 @@ void ordenarPorNome(int total){
 char* printarEnumerados(int opcao, int pos){
     const char *nomesTpEndereco[] = {"Al.", "Av.", "Pr.", "Rua", "Tr.", "Rod."};
     const char *nomesTpContato[] = {"Cel.", "Com.", "Fixo", "Pes.", "Fax", "Per."};
-    const char *nomesTpRede[] = {"TWT.", "FB.", "INSTA.", "GH.", "LI."};
+    const char *nomesTpRede[] = {"TWT.", "FB.", "IG.", "GH.", "LIn."};
     pos--;
     
     // OPÇÃO 1: Enumerado dos Endereços
@@ -442,7 +1608,6 @@ void lerEmail(char* email){
     int tamanhoEmail;
 
     while( ehValido == FALSE ){
-        printf("Digite seu e-mail: ");
         lerFormatStr(email, TAMMAX_EMAIL, FALSE);
         tamanhoEmail = strlen(email);
         
@@ -616,9 +1781,9 @@ int lerNum(){
 }
 
 //FUNÇÕES DE ARQUIVO
-void salvarArquivo(int total){
+void salvarArquivo(int total, char* locacao_dados){
     FILE *ptrArquivo = NULL;
-    ptrArquivo = fopen ("dados.csv", "w");
+    ptrArquivo = fopen (locacao_dados, "w");
 
 
     if (ptrArquivo == NULL){
@@ -639,13 +1804,13 @@ void salvarArquivo(int total){
     fclose(ptrArquivo);
     ptrArquivo = NULL;
 }
-int lerArquivo(){
+int lerArquivo(char* locacao_dados){
 
     FILE *ptrArquivo = NULL;
     char linha[TAMMAX_LINHA_ARQ];
     int total = 0;
 
-    ptrArquivo = fopen ("dados.csv", "r");
+    ptrArquivo = fopen(locacao_dados, "r");
     
     if (ptrArquivo == NULL){
         printf("\n* Não foi possível ler o arquivo.\n");
@@ -761,7 +1926,7 @@ char* tratarNomeArquivo(char *string){
     
 
 }
-void lerConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores){
+void lerConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores, int* list_tabulizada){
 
     FILE *arqConfig = NULL;
     char linha[TAMMAX_LINHA_ARQ];
@@ -775,9 +1940,11 @@ void lerConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores){
     if (arqConfig == NULL){
         arqConfig = fopen ("config.ini", "w");
         // estrutura padrao de configuração
-        fprintf(arqConfig, "arquivo_dados=\"dados.csv\"\n");
+        fprintf(arqConfig, "arquivo_dados=\"data.csv\"\n");
         fprintf(arqConfig, "auto_save=%i\n", TRUE);
         fprintf(arqConfig, "modo_cores=%i\n", FALSE);
+        fprintf(arqConfig, "listagem_tabulizada=%i\n", TRUE);
+
 
         fclose(arqConfig);
         arqConfig = fopen ("config.ini", "r");
@@ -828,6 +1995,14 @@ void lerConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores){
             *modo_cores = atoi(bufferAtoi);
             strcpy(bufferAtoi, "");
             break;
+        case 3:
+            strcpy(bufferAtoi, "");
+            strncpy(bufferAtoi, &linha[comecoDados], 1);
+            bufferAtoi[1] = '\0';
+
+            *list_tabulizada = atoi(bufferAtoi);
+            strcpy(bufferAtoi, "");
+            break;
         }
         numLinha++;
     }
@@ -836,39 +2011,126 @@ void lerConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores){
     arqConfig = NULL;
 
 }
-void editarConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores){
+void editarConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores, int* list_tabulizada){
     char opcao[2];
     char novoNomeArq[TAMMAX_DEST];
     int selecao;
 
     while(opcao[0] != 'N'){
-
+        if(*modo_cores)
+        deixarVermelhoNegrito();
         printf("*****[CONFIGURAÇÕES]*****\n");
-        printf("Destino dos Dados = \"%s\"\n", locacao_dados);
-        printf("Auto-Save = %s\n", printarEstado(*auto_save));
-        printf("Modo Cores = %s\n", printarEstado(*modo_cores));
+
+        if(*modo_cores)
+        deixarRoxo();
+        printf("Destino dos Dados = ");
+
+        if(*modo_cores)
+        deixarRoxoNegrito();
+        printf("\"%s\"\n", locacao_dados);
+
+        if(*modo_cores)
+        deixarRoxo();
+        printf("Auto-Save = ");
+
+        if(*modo_cores)
+        deixarRoxoNegrito();
+        printf("%s\n", printarEstado(*auto_save));
+
+        if(*modo_cores)
+        deixarRoxo();
+        printf("Modo Cores = ");
+        if(*modo_cores)
+        deixarRoxoNegrito();
+        printf("%s\n", printarEstado(*modo_cores));
+
+        if(*modo_cores)
+        deixarRoxo();
+        printf("Listagem Tabulizada = ");
+        if(*modo_cores)
+        deixarRoxoNegrito();
+        printf("%s\n\n", printarEstado(*list_tabulizada));
+
+        if(*modo_cores)
+        deixarRoxoNegrito();
         printf("Deseja editar alguma configuração? (S/N): ");
+        if(*modo_cores)
+        deixarAzulNegrito();
         lerOpcao(&opcao);
         
         if (opcao[0] != 'N'){
 
             printf("\n-------------------------------\n");
-            printf("[1] Destino dos Dados = \"%s\"\n", locacao_dados);
-            printf("[2] Auto-Save = %s\n", printarEstado(*auto_save));
-            printf("[3] Modo Cores = %s\n", printarEstado(*modo_cores));
+            if(*modo_cores)
+            deixarRoxoNegrito();
+            printf("[1] ");
+            if(*modo_cores)
+            deixarRoxo();
+            printf("Destino dos Dados = ");
+            if(*modo_cores)
+            deixarRoxoNegrito();
+            printf("\"%s\"\n", locacao_dados);
+
+            if(*modo_cores)
+            deixarRoxoNegrito();
+            printf("[2] ");
+            if(*modo_cores)
+            deixarRoxo();
+            printf("Auto-Save = ");
+            if(*modo_cores)
+            deixarRoxoNegrito();
+            printf("%s\n", printarEstado(*auto_save));
+
+            if(*modo_cores)
+            deixarRoxoNegrito();
+            printf("[3] ");
+            if(*modo_cores)
+            deixarRoxo();
+            printf("Modo Cores = ");
+            if(*modo_cores)
+            deixarRoxoNegrito();
+            printf("%s\n", printarEstado(*modo_cores));
+
+            if(*modo_cores)
+            deixarRoxoNegrito();
+            printf("[4] ");
+            if(*modo_cores)
+            deixarRoxo();
+            printf("Listagem Tabulizada = ");
+            if(*modo_cores)
+            deixarRoxoNegrito();
+            printf("%s\n\n", printarEstado(*list_tabulizada));
+
             printf("Qual opção deseja selecionar?: ");
-            selecao = lerSelecao(3);
+            selecao = lerSelecao(4);
 
             switch (selecao){
             case 1:
+                if(*modo_cores)
+                deixarRoxo();
                 printf("Digite a novo nome do arquivo: ");
+
+                if(*modo_cores)
+                deixarAzulNegrito();
                 lerFormatStr(novoNomeArq, TAMMAX_DEST-3, FALSE);
                 tratarNomeArquivo(novoNomeArq);
+
+                if(*modo_cores)
+                deixarRoxo();
                 printf("Confirma o novo nome do arquivo? (S/N): ");
+
                 strcpy(opcao, "");
+                if(*modo_cores)
+                deixarAzulNegrito();
                 lerOpcao(&opcao);
+                
+                if(*modo_cores)
+                deixarRoxo();
+
                 if(opcao[0] == 'S'){
+                    rename(locacao_dados, novoNomeArq);
                     printf("Modificação efetuada.\n");
+                    printf("Será efetiva após o reinício do programa.\n");
                     strcpy(locacao_dados, "");
                     strcpy(locacao_dados, novoNomeArq);
                 }else{
@@ -881,468 +2143,36 @@ void editarConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores){
                 break;
             case 3:
                 *modo_cores = !(*modo_cores);
+                printf("NT: Ativar modo cores no Windows não fará qualquer diferença.\n");
+                printf("Modificação efetuada.\n\n");
+                break;
+            case 4:
+                *list_tabulizada = !(*list_tabulizada);
                 printf("Modificação efetuada.\n\n");
                 break;
             default:
                 break;
-
             }
-
-            gravarConfiguracoes(locacao_dados, *auto_save, *modo_cores);
+            printf("\n");
+            gravarConfiguracoes(locacao_dados, *auto_save, *modo_cores, *list_tabulizada);
 
         }
-
-    
     }
-
-
 }
-void gravarConfiguracoes(char* locacao_dados, int auto_save, int modo_cores){
+void gravarConfiguracoes(char* locacao_dados, int auto_save, int modo_cores, int list_tabulizada){
     FILE *arqConfig = NULL;
     arqConfig = fopen ("config.ini", "w");
 
     fprintf(arqConfig, "arquivo_dados=\"%s\"\n", locacao_dados);
     fprintf(arqConfig, "auto_save=%i\n", auto_save);
     fprintf(arqConfig, "modo_cores=%i\n", modo_cores);
+    fprintf(arqConfig, "listagem_tabulizada=%i\n", list_tabulizada);
 
     fclose(arqConfig);
     arqConfig = NULL;
 
     
     return 0;
-}
-
-//FUNÇÕES PRINCIPAIS
-void lerContatos(int *total, int auto_save){
-    int parar = FALSE;
-    char opcao[2];
-
-    char nome[TAMMAX_NOME], endereco[TAMMAX_ENDERECO], cep[TAMMAX_CEP], telefone[TAMMAX_TEL];
-    char nota[TAMMAX_NOTA], email[TAMMAX_EMAIL], redeSocial[TAMMAX_RS];
-    enum {Alameda=1, Avenida, Praca, Rua, Travessa, Rodovia}tipoEndereco;
-    enum {Celular=1, Comercial, Fixo, Pessoal, Fax, Personalizado}tipoContato;
-    enum {Twitter=1, Facebook, Instagram, GitHub, LinkedIn}tipoRedeSocial;
-    int numCasa;
-
-    strcpy(nome, "");
-    strcpy(endereco, "");
-    strcpy(telefone, "");
-    strcpy(email, "");
-    strcpy(cep, "");
-    strcpy(redeSocial, "");
-    strcpy(nota, "");
-
-    //buffer é uma variável que o email será inserido temporariamente.
-    char buffer[TAMMAX_EMAIL];
-
-    if (*total >= TAMMAX_AGENDA){
-        printf("Não é possível registrar mais contatos!\nTOTAL ATINGIDO!\n\n");
-    }else{
-
-        while (parar != TRUE){
-
-            int i = *total;
-
-
-            // LEITURA DO NOME
-            printf("Digite seu nome: ");
-            lerFormatStr(nome, TAMMAX_NOME, FALSE);
-
-            // LEITURA DO TIPO DO ENDEREÇO
-            printf("[1] Alameda \n");
-            printf("[2] Avenida \n");
-            printf("[3] Praça \n");
-            printf("[4] Rua \n");
-            printf("[5] Travessa \n");
-            printf("[6] Rodovia \n");
-
-            printf("Digite o tipo do endereço: ");
-            tipoEndereco = lerSelecao(NUMOPCOES_END);
-            
-
-            // LEITURA DO ENDEREÇO
-            printf("Digite seu endereço: ");
-            lerFormatStr(endereco, TAMMAX_ENDERECO, FALSE);
-
-            // LEITURA DO NÚMERO DA CASA
-            printf("Digite o número da casa ( - Sem número): ");
-            numCasa = lerNum();
-
-            // LEITURA DO CEP
-            printf("Digite seu CEP: ");
-            lerFormatStr(cep, TAMMAX_CEP, TRUE);
-
-
-            //LEITURA DO NÚMERO DE TELEFONE
-            printf("Digite o número do telefone (com DDD): ");
-            lerFormatStr(telefone, TAMMAX_TEL, TRUE);
-
-            //LEITURA DO TIPO DE CONTATO
-            printf("[1] Celular \n");
-            printf("[2] Comercial \n");
-            printf("[3] Fixo \n");
-            printf("[4] Pessoal \n");
-            printf("[5] Fax \n");
-            printf("[6] Personalizado \n");
-            printf("Digite o tipo do contato: ");
-            tipoContato = lerSelecao(NUMOPCOES_CTT);
-
-            // LEITURA DO E-MAIL
-            lerEmail(&buffer);
-            strcpy(email, buffer);
-
-            // LEITURA DA NOME DE USUÁRIO DA REDE SOCIAL
-            printf("[1] Twitter \n");
-            printf("[2] Facebook \n");
-            printf("[3] Instagram \n");
-            printf("[4] GitHub \n");
-            printf("[5] LinkedIn \n");
-            printf("Digite o tipo da rede social: ");
-            tipoRedeSocial = lerSelecao(NUMOPCOES_RS);
-
-            printf("Digite o seu nome de usuário do %s: ", printarEnumerados(3, tipoRedeSocial));
-            lerFormatStr(redeSocial, TAMMAX_RS, FALSE);
-
-            // LEITURA DA NOTA
-            printf("Deseja adicionar uma nota? (S/N): ");
-            lerOpcao(&opcao);
-
-
-            if (opcao[0] == 'N'){
-                strcpy(nota, " ");
-            }else{
-                printf("Digite uma nota: ");
-
-                lerFormatStr(nota, TAMMAX_NOTA, FALSE);
-            }
-
-            // LEITURA DE CONTINUAÇÃO
-            printf("Deseja confirmar as informações? (S/N): ");
-            lerOpcao(&opcao);
-            if (opcao[0] == 'N'){
-                printf("Adição Cancelada.\n ");
-                return 0;
-            }else{
-                //copiar nome para struct
-
-                strcpy(agenda.contato[i].nome, nome);
-                //copiar tipoEndereco para struct
-                agenda.contato[i].tipoEndereco = tipoEndereco;
-                //copiar endereco para struct
-                strcpy(agenda.contato[i].endereco, endereco);
-                //copiar num da casa
-                agenda.contato[i].numCasa = numCasa;
-                //copiar cep
-                strcpy(agenda.contato[i].cep, cep);
-                //copiar telefone
-                strcpy(agenda.contato[i].telefone, telefone);
-                //copiar tipoContato
-                agenda.contato[i].tipoContato = tipoContato;
-                //copiar e-mail
-                strcpy(agenda.contato[i].email, email);
-                //copiar tipo da rede social
-                agenda.contato[i].tipoRedeSocial = tipoRedeSocial;
-                //copiar usuario da rede social
-                strcpy(agenda.contato[i].redeSocial, redeSocial);
-                //copiar nota
-                strcpy(agenda.contato[i].nota, nota);
-            }
-
-            printf("Deseja adicionar mais alguém? (S/N): ");
-            lerOpcao(&opcao);
-            if (opcao[0] == 'N'){
-                parar = TRUE;
-            }
-            
-            (*total)++;
-        }
-
-        
-        ordenarPorNome(*total);
-
-        if(auto_save){
-            salvarArquivo(*total);
-        }
-    }
-}
-void excluirContato(int *total, int auto_save){
-    int pos;
-    char opcao[2];
-
-    while (opcao[0] != 'S'){
-        for (int i = 0; i < *total; i++){
-            printf("[%i] Nome: %s\n", i+1, agenda.contato[i].nome);
-        }
-
-        printf("Digite o número do contato que deseja excluir: ");
-        pos = lerSelecao(*total);
-        pos--;
-
-        printf("Deseja confirmar a exclusão de %s? (S/N): ", printarNome(agenda.contato[pos].nome));
-        lerOpcao(&opcao);
-    }
-
-    for (int i = pos; i < *total; i++){
-        agenda.contato[i] = agenda.contato[i+1];
-    }
-
-    printf("Contato excluído!\n");
-
-    (*total)--;
-
-    if(auto_save){
-        salvarArquivo(*total);
-    }
-}
-void editarContato(int total, int auto_save){
-    
-    int ctt, opcao;
-    int contadorOpcoes = 1;
-
-    char conf[2];
-    strcpy(conf, "");
-    
-    char nome[TAMMAX_NOME], endereco[TAMMAX_ENDERECO], cep[TAMMAX_CEP], telefone[TAMMAX_TEL];
-    char nota[TAMMAX_NOTA], email[TAMMAX_EMAIL], redeSocial[TAMMAX_RS];
-    enum {Alameda=1, Avenida, Praca, Rua, Travessa, Rodovia}tipoEndereco;
-    enum {Celular=1, Comercial, Fixo, Pessoal, Fax, Personalizado}tipoContato;
-    enum {Twitter=1, Facebook, Instagram, GitHub, LinkedIn}tipoRedeSocial;
-    int numCasa;
-
-
-    char* editaveis[50] = 
-    {
-        "Nome", "Tipo do Endereço", "Endereco", "Número da Casa", "CEP", "Número do Telefone",
-        "Tipo de Contato", "E-Mail", "Tipo da Rede Social", "Usuário da Rede Social", "Nota"            
-    };
-
-
-    for (int i = 0; i < total; i++){
-        printf("[%i] Nome: %s\n", i+1, agenda.contato[i].nome);
-    }
-
-    printf("Digite o número do contato que deseja alterar: \n");
-    getchar();
-    ctt = lerSelecao(total);
-    ctt--;
-
-    printf("\n");
-    for (int i = 0; i < 11; i++){
-        printf("[%i] %s\n", contadorOpcoes, editaveis[i]);
-        contadorOpcoes++;
-    }
-
-    printf("\nDigite a opção desejada para editar: ");
-    opcao = lerSelecao(contadorOpcoes);
-    printf("\n");
-    
-    switch (opcao){
-    case 1:
-        while (conf[0] != 'S'){
-            printf("[CONTATO: %i] Digite seu nome: ", ctt+1);
-            lerFormatStr(nome, TAMMAX_NOME, FALSE);
-            printf("Confirma a modificação? (S/N): ");
-            lerOpcao(&conf);
-        }
-
-        strcpy(agenda.contato[ctt].nome, "");
-        strcpy(agenda.contato[ctt].nome, nome);
-        break;
-
-    case 2:
-        while (conf[0] != 'S'){
-            printf("[1] Alameda \n");
-            printf("[2] Avenida \n");
-            printf("[3] Praça \n");
-            printf("[4] Rua \n");
-            printf("[5] Travessa \n");
-            printf("[6] Rodovia \n");
-            printf("[CONTATO: %i] Digite o tipo do endereço: ", ctt+1);
-            tipoEndereco = lerSelecao(NUMOPCOES_END);
-            printf("Confirma a modificação? (S/N): ");
-            lerOpcao(&conf);
-        }
-        agenda.contato[ctt].tipoEndereco = tipoEndereco;
-        break;
-
-    case 3:
-        while (conf[0] != 'S'){
-            printf("[CONTATO: %i] Digite seu endereço: ", ctt+1);
-            lerFormatStr(endereco, TAMMAX_ENDERECO, FALSE);
-            printf("Confirma a modificação? (S/N): ");
-            lerOpcao(&conf);
-        }
-        strcpy(agenda.contato[ctt].endereco, "");
-        strcpy(agenda.contato[ctt].endereco, endereco);
-        break;
-
-    case 4:
-        while (conf[0] != 'S'){
-            printf("[CONTATO: %i] Digite o número da sua casa: ", ctt+1);
-            numCasa = lerNum();
-            printf("Confirma a modificação? (S/N): ");
-            lerOpcao(&conf);
-        }
-        agenda.contato[ctt].numCasa = numCasa;
-        break;
-
-    case 5:
-        while (conf[0] != 'S'){
-            printf("[CONTATO: %i] Digite seu CEP: ", ctt+1);
-            lerFormatStr(cep, TAMMAX_CEP, TRUE);
-            printf("Confirma a modificação? (S/N): ");
-            lerOpcao(&conf);
-        }
-        strcpy(agenda.contato[ctt].cep, "");
-        strcpy(agenda.contato[ctt].cep, cep);
-        break;
-
-    case 6:
-        while (conf[0] != 'S'){
-            printf("[CONTATO: %i] Digite seu telefone: ", ctt+1);
-            lerFormatStr(telefone, TAMMAX_TEL, TRUE);
-            printf("Confirma a modificação? (S/N): ");
-            lerOpcao(&conf);
-        }
-        strcpy(agenda.contato[ctt].telefone, "");
-        strcpy(agenda.contato[ctt].telefone, telefone);
-        break;
-
-    case 7:
-        while (conf[0] != 'S'){
-            printf("[1] Celular \n");
-            printf("[2] Comercial \n");
-            printf("[3] Fixo \n");
-            printf("[4] Pessoal \n");
-            printf("[5] Fax \n");
-            printf("[6] Personalizado \n");
-            printf("[CONTATO: %i] Digite o tipo de contato: ", ctt+1);
-            getchar();
-            tipoContato = lerSelecao(NUMOPCOES_END);
-            printf("Confirma a modificação? (S/N): ");
-            lerOpcao(&conf);
-        }
-        agenda.contato[ctt].tipoContato = tipoContato;
-        break;
-
-    case 8:
-        while (conf[0] != 'S'){
-            printf("[CONTATO: %i] Digite o seu email: ", ctt+1);
-            lerEmail(&email);
-            printf("Confirma a modificação? (S/N): ");
-            lerOpcao(&conf);
-        }
-        strcpy(agenda.contato[ctt].email, "");
-        strcpy(agenda.contato[ctt].email, email);
-        break;
-
-    case 9:
-        while (conf[0] != 'S'){
-            printf("[1] Twitter \n");
-            printf("[2] Facebook \n");
-            printf("[3] Instagram \n");
-            printf("[4] GitHub \n");
-            printf("[5] LinkedIn \n");
-            printf("[CONTATO: %i] Digite o tipo da rede social: ", ctt+1);
-            tipoRedeSocial = lerSelecao(NUMOPCOES_RS);
-            printf("Confirma a modificação? (S/N): ");
-            lerOpcao(&conf);
-        }
-        agenda.contato[ctt].tipoRedeSocial = tipoRedeSocial;
-        break;
-
-   case 10:
-        while (conf[0] != 'S'){
-            printf("[CONTATO: %i] Digite o seu nome de usuário do %s: ", ctt+1, printarEnumerados(3, agenda.contato[ctt].tipoRedeSocial));
-            lerFormatStr(redeSocial, TAMMAX_RS, FALSE);
-
-            printf("Confirma a modificação? (S/N): ");
-            lerOpcao(&conf);
-        }
-        strcpy(agenda.contato[ctt].redeSocial, "");
-        strcpy(agenda.contato[ctt].redeSocial, redeSocial);
-        break;
-
-    case 11:
-        while (conf[0] != 'S'){
-            printf("[CONTATO: %i] Digite uma nota: ", ctt+1);
-            lerFormatStr(nota, TAMMAX_NOTA, FALSE);
-
-            printf("Confirma a modificação? (S/N): ");
-            lerOpcao(&conf);
-        }
-        strcpy(agenda.contato[ctt].nota, "");
-        strcpy(agenda.contato[ctt].nota, nota);
-        break;
-
-    default:
-        break;
-    }
-
-    ordenarPorNome(ctt);
-    if(auto_save){
-        salvarArquivo(total);
-    }
-    printf("Alteração Feita!\n");
-    printf("\n");
-}
-void listarContatos(int total){
-    if (total == 0){
-        printf("Ainda não há contatos registrados!\n");
-        sleep(1);
-    }else{
-        printf("\n============ DADOS ============\n");
-        printf("\n");
-        for (int c = 0; c < total; c++){
-            printf("=========== CONTATO %i ===========\n", (c+1));
-            printf("Nome: %s\n", printarNome(agenda.contato[c].nome));
-            printf("Endereço: %s %s, nº %i\n", printarEnumerados(1, agenda.contato[c].tipoEndereco), agenda.contato[c].endereco, agenda.contato[c].numCasa);
-            printf("CEP: %s\n", printarCep(agenda.contato[c].cep));
-            printf("Telefone: %s\n", printarTel(agenda.contato[c].telefone));
-            printf("Tipo do Contato: %s\n", printarEnumerados(2, agenda.contato[c].tipoContato));
-            printf("E-mail: %s\n", agenda.contato[c].email);
-            printf("%s: %s\n", printarEnumerados(3, agenda.contato[c].tipoRedeSocial), agenda.contato[c].redeSocial);
-            printf("Nota: %s\n", agenda.contato[c].nota);
-        }
-
-    }
-}
-void consultarContato(int total){
-    char nomeConsultado[TAMMAX_NOME];
-    char* r;
-
-    int contResultados = 0;
-    // contResultados - Contador dos Resultados
-    int foiEncontrado = FALSE;
-    
-    printf("Digite o nome a ser consultado: ");
-    lerFormatStr(nomeConsultado, TAMMAX_NOME, FALSE);
-
-    for (int i = 0; i < total; i++){
-        r = strstr(agenda.contato[i].nome, nomeConsultado);
-        if (r != NULL){
-            foiEncontrado = TRUE;
-            contResultados++;
-
-            printf("\n=============================\n%18s %i\n=============================\n", "RESULTADO", contResultados);
-            printf("Nome: %s\n", printarNome(agenda.contato[i].nome));
-            printf("Endereço: %s %s, nº %i\n", printarEnumerados(1, agenda.contato[i].tipoEndereco), agenda.contato[i].endereco, agenda.contato[i].numCasa);
-            printf("CEP: %s\n", printarCep(agenda.contato[i].cep));
-            printf("Telefone: %s\n", printarTel(agenda.contato[i].telefone));
-            printf("Tipo do Contato: %s\n", printarEnumerados(2, agenda.contato[i].tipoContato));
-            printf("Email: %s\n", agenda.contato[i].email);
-            printf("%s: %s\n", printarEnumerados(3, agenda.contato[i].tipoRedeSocial), agenda.contato[i].redeSocial);
-            printf("Nota: %s\n", agenda.contato[i].nota);
-            printf("=============================");
-            
-        }
-    }
-
-    if (foiEncontrado == FALSE){
-        printf("Não há resultados.");
-    }
-
-    printf("\n");
 }
 
 /* unicamente, por: SANT! */
