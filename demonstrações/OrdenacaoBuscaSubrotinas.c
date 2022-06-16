@@ -208,7 +208,7 @@ int realizarBuscaBinaria ( int chave, int vetor [] )
 void aguardarParaSeguir ( void )
 {
     printf ( "\n\nTecle ENTER para continuar..." );
-    fflush ( stdin );
+    getchar ();
     getchar ();
     limparTela ();
 }

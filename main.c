@@ -29,6 +29,16 @@
 #define TAMMAX_LINHA_ARQ 500
 //TAMMAX_DEST é uma pseudoconstante para o tamanho do destino para o arquivo de configuração.
 #define TAMMAX_DEST 30
+//TAMMAX_SUBS_NOME é uma pseudoconstante para o tamanho da substring de nome usada na listagem tabulizada.
+#define TAMMAX_SUBS_NOME 10 
+//TAMMAX_SUBS_END é uma pseudoconstante para o tamanho da substring de endereço usada na listagem tabulizada.
+#define TAMMAX_SUBS_END 10 
+//TAMMAX_SUBS_NOTA é uma pseudoconstante para o tamanho da substring da nota usada na listagem tabulizada.
+#define TAMMAX_SUBS_NOTA 10 
+//TAMMAX_SUBS_EMAIL é uma pseudoconstante para o tamanho da substring do e-mail usada na listagem tabulizada.
+#define TAMMAX_SUBS_EMAIL 20 
+//TAMMAX_SUBS_REDESOCIAL é uma pseudoconstante para o tamanho da substring do username usada na listagem tabulizada.
+#define TAMMAX_SUBS_REDESOCIAL 10 
 
 struct st_pessoa{
     char nome[TAMMAX_NOME], endereco[TAMMAX_ENDERECO], cep[TAMMAX_CEP], telefone[TAMMAX_TEL];
@@ -43,26 +53,13 @@ struct st_agenda{
     struct st_pessoa aux;
 }agenda, aux;
 
-void limparTela();
-void deixarPreto ();
-void deixarVermelho ();
-void deixarVerde ();
-void deixarAmarelo();
-void deixarAzul ();
 void deixarRoxo ();
-void deixarCiano ();
-void deixarBranco ();
-
-void deixarPretoNegrito ();
 void deixarVermelhoNegrito ();
-void deixarVerdeNegrito ();
 void deixarAmareloNegrito ();
 void deixarAzulNegrito ();
 void deixarRoxoNegrito ();
-void deixarCianoNegrito ();
-void deixarBrancoNegrito ();
-
 void resetarCores();
+
 void tirarEspacos(char *string);
 void deixarMinusculo(char *string);
 void capitalizarStr(char *string);
@@ -199,7 +196,7 @@ void lerContatos(int *total, int auto_save, int modo_cores, char* locacao_dados)
 
     if(modo_cores)
     deixarVermelhoNegrito();
-    printf("++++++++++++ ADIÇÃO DE CON+A+OS ++++++++++++\n");
+    printf("\n++++++++++++ ADIÇÃO DE CON+A+OS ++++++++++++\n");
 
     if (*total >= TAMMAX_AGENDA){
         if(modo_cores)
@@ -488,6 +485,10 @@ void lerContatos(int *total, int auto_save, int modo_cores, char* locacao_dados)
 
         if(auto_save){
             salvarArquivo(*total, locacao_dados);
+        }else{
+            if(modo_cores)
+            deixarAmareloNegrito();
+            printf("Modificação serão salvas após o reinício do programa! (AUTO-SAVE OFF)\n");
         }
     }
 }
@@ -562,6 +563,10 @@ void excluirContato(int *total, int auto_save, int modo_cores, char* locacao_dad
 
     if(auto_save){
         salvarArquivo(*total, locacao_dados);
+    }else{
+        if(modo_cores)
+        deixarAmareloNegrito();
+        printf("Modificação serão salvas após o reinício do programa! (AUTO-SAVE OFF)\n");
     }
 }
 void editarContato(int total, int auto_save, int modo_cores, char *locacao_dados){
@@ -1044,15 +1049,22 @@ void editarContato(int total, int auto_save, int modo_cores, char *locacao_dados
     ordenarPorNome(ctt);
     if(auto_save){
         salvarArquivo(total, locacao_dados);
+    }else{
+        if(modo_cores)
+        deixarAmareloNegrito();
+        printf("Modificação serão salvas após o reinício do programa! (AUTO-SAVE OFF)\n");
     }
     printf("Alteração Feita!\n");
     printf("\n");
 }
 void listarContatos(int total, int ehTabulizada, int modo_cores){
 
-    char subStrNome[11];
-    char subStrEnd[11];
-    char subStrNt[11];
+    char subStrNome[TAMMAX_SUBS_NOME];
+    char subStrEnd[TAMMAX_SUBS_END];
+    char subStrNt[TAMMAX_SUBS_NOTA];
+    char subStrEmail[TAMMAX_SUBS_EMAIL];
+    char subStrRedeSocial[TAMMAX_SUBS_REDESOCIAL];
+
     printf("\n");
 
     if (total == 0){
@@ -1068,21 +1080,24 @@ void listarContatos(int total, int ehTabulizada, int modo_cores){
             deixarVermelhoNegrito();
 
             printf("============================================== LISTAGEM TABULADA ==============================================\n");
-            printf("%03s|%-10s|%-4s|%-10s|%-5s|%-12s|%-3s|%-20s |%-3s|%-10s|%-10s|\n",
+            printf("%03s|%-10s|%-4s|%-10s|%-5s|%-12s|%-3s|%-20s|%-3s|%-10s|%-10s|\n",
             "ID", "NOME", "T.E", "END.", "NUM.", "NUM PARA CONTATO ", "T.C ", "EMAIL", "R.S ", "USERNAME", "NOTA");
             
             if(modo_cores)
             deixarAzulNegrito();
 
             for (int c = 0; c < total; c++){
-                strncpy(subStrNome, printarNome(agenda.contato[c].nome), 10);
-                strncpy(subStrEnd, agenda.contato[c].endereco, 10);
-                strncpy(subStrNt, agenda.contato[c].nota, 10);
+                strncpy(subStrNome, printarNome(agenda.contato[c].nome), TAMMAX_SUBS_NOME-1);
+                strncpy(subStrEnd, agenda.contato[c].endereco, TAMMAX_SUBS_END-1);
+                strncpy(subStrNt, agenda.contato[c].nota, TAMMAX_SUBS_NOTA-1);
+                strncpy(subStrEmail, agenda.contato[c].email, TAMMAX_SUBS_EMAIL-1);
+                strncpy(subStrRedeSocial, agenda.contato[c].redeSocial, TAMMAX_SUBS_REDESOCIAL-1);
 
-                printf("%03i|%-10s|%-4s|%-10s|%-5i|%-12s|%-3s|%-20s |%-3s|%-10s|%-10s|\n\n",
+
+                printf("%03i|%-10s|%-4s|%-10s|%-5i|%-12s|%-3s|%-20s|%-3s|%-10s|%-10s|\n\n",
                 c+1, subStrNome, printarEnumerados(1, agenda.contato[c].tipoEndereco), subStrEnd, agenda.contato[c].numCasa,
                 printarTel(agenda.contato[c].telefone), printarEnumerados(2, agenda.contato[c].tipoContato),
-                agenda.contato[c].email, printarEnumerados(3, agenda.contato[c].tipoRedeSocial), agenda.contato[c].redeSocial,
+                subStrEmail, printarEnumerados(3, agenda.contato[c].tipoRedeSocial), subStrRedeSocial,
                 subStrNt);
 
             }
@@ -1153,14 +1168,14 @@ void listarContatos(int total, int ehTabulizada, int modo_cores){
                 printf("Nota: ");
                 if(modo_cores)
                 deixarAzulNegrito(); 
-                printf("%s\n", agenda.contato[c].nota);
+                printf("%s", agenda.contato[c].nota);
 
                 if(modo_cores)
                 deixarVermelhoNegrito();
             }
         }
     }
-    printf("\n===============================\n");
+    printf("===============================\n");
 
     printf("\n");
 }
@@ -1259,79 +1274,29 @@ void consultarContato(int total, int modo_cores){
 
     if (foiEncontrado == FALSE){
         if(modo_cores)
-        deixarRoxo();
+        deixarAmareloNegrito();
         printf("Não há resultados.");
     }
 
     printf("\n");
 }
 
-//FUNÇÃO PARA LIMPAR TELA
-void limparTela (){
-    #ifdef __linux__
-        system ( "clear" );
-    #elif _WIN32
-        system ( "cls" );
-    #endif
-}
+
+// NT: exclui a função limparTela e enterParaSeguir
+// por conflitos com linux e windows. 
+
+
+
 
 //FUNÇÕES DE CORES - AUXILIARES - PS: Só funciona no terminal do linux por enquanto!
-void deixarPreto () {
-    #ifdef __linux__
-        printf("\033[0;30m");     
-    #endif
-
-}
-void deixarVermelho () {
-    #ifdef __linux__
-        printf("\033[0;31m");
-    #endif
-}
-void deixarVerde () {
-    #ifdef __linux__
-        printf("\033[0;32m");
-    #endif
-}
-void deixarAmarelo() {
-    #ifdef __linux__
-        printf("\033[0;33m");
-    #endif
-}
-void deixarAzul() {
-    #ifdef __linux__
-        printf("\033[0;34m");
-    #endif
-}
 void deixarRoxo() {
     #ifdef __linux__
         printf("\033[0;35m");
     #endif
 }
-void deixarCiano() {
-    #ifdef __linux__
-        printf("\033[0;36m");
-    #endif
-}
-void deixarBranco() {
-    #ifdef __linux__
-        printf("\033[0;37m");
-    #endif
-}
-
-void deixarPretoNegrito() {
-    #ifdef __linux__
-        printf("\033[1;30m");     
-    #endif
-
-}
 void deixarVermelhoNegrito () {
     #ifdef __linux__
         printf("\033[1;31m");
-    #endif
-}
-void deixarVerdeNegrito () {
-    #ifdef __linux__
-        printf("\033[1;32m");
     #endif
 }
 void deixarAmareloNegrito() {
@@ -1349,17 +1314,6 @@ void deixarRoxoNegrito () {
         printf("\033[1;35m");
     #endif
 }
-void deixarCianoNegrito () {
-    #ifdef __linux__
-        printf("\033[1;36m");
-    #endif
-}
-void deixarBrancoNegrito () {
-    #ifdef __linux__
-        printf("\033[1;37m");
-    #endif
-}
-
 void resetarCores() {
 
     #ifdef __linux__
@@ -2035,7 +1989,7 @@ void editarConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores, i
     while(opcao[0] != 'N'){
         if(*modo_cores)
         deixarVermelhoNegrito();
-        printf("*****[CONFIGURAÇÕES]*****\n");
+        printf("\n*****[CONFIGURAÇÕES]*****\n");
 
         if(*modo_cores)
         deixarRoxo();
