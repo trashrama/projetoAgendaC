@@ -499,6 +499,13 @@ void excluirContato(int *total, int auto_save, int modo_cores, char* locacao_dad
     deixarVermelhoNegrito();
     printf("----------EXCLUSÃO DE CONTATOS----------\n");
 
+    if((total) == 0){
+        if(modo_cores)
+        deixarAmareloNegrito();
+        printf("Não há contatos na agenda..\n\n");
+        return 0;
+    }
+
     while (opcao[0] != 'S'){
         for (int i = 0; i < *total; i++){
             if(modo_cores)
@@ -582,6 +589,14 @@ void editarContato(int total, int auto_save, int modo_cores, char *locacao_dados
     if(modo_cores)
     deixarVermelhoNegrito();
     printf("\^\^\^\^\^\^EDIÇÃO DE CONTATOS\^\^\^\^\^\^\n");
+
+    if((total) == 0){
+        if(modo_cores)
+        deixarAmareloNegrito();
+        printf("Não há contatos na agenda..\n\n");
+        return 0;
+    }
+
 
     for (int i = 0; i < total; i++){
         if(modo_cores)
@@ -752,7 +767,6 @@ void editarContato(int total, int auto_save, int modo_cores, char *locacao_dados
             if(modo_cores)
             deixarRoxo();
             printf("Digite o número da sua casa: ");
-
 
             if(modo_cores)
             deixarAzulNegrito();
@@ -976,17 +990,17 @@ void editarContato(int total, int auto_save, int modo_cores, char *locacao_dados
             deixarRoxoNegrito();
             printf("[CONTATO: %i] ", ctt+1);
 
+            
             if(modo_cores)
             deixarRoxo();
             printf("Digite o seu nome de usuário do");
             if(modo_cores)
             deixarRoxoNegrito();
-            printf("%s: ", printarEnumerados(3, tipoRedeSocial));
+            printf(" %s: ", printarEnumerados(3, agenda.contato[ctt].tipoRedeSocial));
             
             if(modo_cores)
             deixarRoxo();
             lerFormatStr(redeSocial, TAMMAX_RS, FALSE);
-
             if(modo_cores)
             deixarRoxo();
             printf("Confirma a modificação? (S/N): ");
@@ -1054,7 +1068,7 @@ void listarContatos(int total, int ehTabulizada, int modo_cores){
             deixarVermelhoNegrito();
 
             printf("============================================== LISTAGEM TABULADA ==============================================\n");
-            printf("%03s|%-10s|%-3s|%-10s|%-5s|%-12s|%-3s|%-20s |%-3s|%-10s|%-10s|\n",
+            printf("%03s|%-10s|%-4s|%-10s|%-5s|%-12s|%-3s|%-20s |%-3s|%-10s|%-10s|\n",
             "ID", "NOME", "T.E", "END.", "NUM.", "NUM PARA CONTATO ", "T.C ", "EMAIL", "R.S ", "USERNAME", "NOTA");
             
             if(modo_cores)
@@ -1065,7 +1079,7 @@ void listarContatos(int total, int ehTabulizada, int modo_cores){
                 strncpy(subStrEnd, agenda.contato[c].endereco, 10);
                 strncpy(subStrNt, agenda.contato[c].nota, 10);
 
-                printf("%03i|%-10s|%-3s|%-10s|%-5i|%-12s|%-3s|%-20s |%-3s|%-10s|%-10s|\n\n",
+                printf("%03i|%-10s|%-4s|%-10s|%-5i|%-12s|%-3s|%-20s |%-3s|%-10s|%-10s|\n\n",
                 c+1, subStrNome, printarEnumerados(1, agenda.contato[c].tipoEndereco), subStrEnd, agenda.contato[c].numCasa,
                 printarTel(agenda.contato[c].telefone), printarEnumerados(2, agenda.contato[c].tipoContato),
                 agenda.contato[c].email, printarEnumerados(3, agenda.contato[c].tipoRedeSocial), agenda.contato[c].redeSocial,
@@ -1174,13 +1188,13 @@ void consultarContato(int total, int modo_cores){
 
             if(modo_cores)
             deixarVermelhoNegrito();
-            printf("\n=============================\n%18s %i\n=============================\n", "RESULTADO", contResultados);
+            printf("\n=============================\n%18s", "RESULTADO");
             if(modo_cores)
             deixarAzulNegrito();
-            printf(" %i ", (i+1));
+            printf(" %i ", contResultados);
             if(modo_cores)
             deixarVermelhoNegrito();
-            printf("===========\n");
+            printf("\n=============================\n", contResultados);
 
             printf("Nome: ");
             if(modo_cores)
@@ -1736,7 +1750,7 @@ void lerOpcao(char* opcao){
 }
 int lerSelecao(int u){
     int var;
-    char buffer[2];
+    char buffer[4];
 
     /*
        A variável p é o ponto de início das seleções, já que o usuário não começa a escolher do 0.
@@ -1745,7 +1759,7 @@ int lerSelecao(int u){
    
     int p = 1;
     do{
-        lerFormatStr(buffer, 2, TRUE);
+        lerFormatStr(buffer, 3, FALSE);
         var = atoi(buffer);
 
         if( (var > u) || (var < p) ){
@@ -2013,6 +2027,8 @@ void lerConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores, int*
 }
 void editarConfiguracoes(char* locacao_dados, int* auto_save, int* modo_cores, int* list_tabulizada){
     char opcao[2];
+    char buffer[3];
+
     char novoNomeArq[TAMMAX_DEST];
     int selecao;
 
