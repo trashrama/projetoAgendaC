@@ -1281,12 +1281,8 @@ void consultarContato(int total, int modo_cores){
     printf("\n");
 }
 
-
 // NT: exclui a função limparTela e enterParaSeguir
 // por conflitos com linux e windows. 
-
-
-
 
 //FUNÇÕES DE CORES - AUXILIARES - PS: Só funciona no terminal do linux por enquanto!
 void deixarRoxo() {
@@ -2145,4 +2141,4 @@ void gravarConfiguracoes(char* locacao_dados, int auto_save, int modo_cores, int
     return 0;
 }
 
-/* unicamente, por: SANT! */
+/* unicamente, por: SANT! (e minhas múltiplas personalidades que me ajudaram a escrever esse código) */
