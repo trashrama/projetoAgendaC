@@ -602,7 +602,6 @@ void editarContato(int total, int auto_save, int modo_cores, char *locacao_dados
         return 0;
     }
 
-
     for (int i = 0; i < total; i++){
         if(modo_cores)
         deixarRoxo();
@@ -1081,7 +1080,7 @@ void listarContatos(int total, int ehTabulizada, int modo_cores){
 
             printf("============================================== LISTAGEM TABULADA ==============================================\n");
             printf("%03s|%-10s|%-4s|%-10s|%-5s|%-12s|%-3s|%-20s|%-3s|%-10s|%-10s|\n",
-            "ID", "NOME", "T.E", "END.", "NUM.", "NUM PARA CONTATO ", "T.C ", "EMAIL", "R.S ", "USERNAME", "NOTA");
+            "ID", "NOME", "T.E", "END.", "NUM.", "NUM PARA CONTATO ", "T.C ", "EMAIL", "R.S", "USERNAME", "NOTA");
             
             if(modo_cores)
             deixarAzulNegrito();
@@ -1375,7 +1374,6 @@ void capitalizarStr(char *string){
     //capitalizando o primeiro caracter;
     string[0] = toupper(string[0]);
 
-
     //capitalizando sobrenomes
     for (int i = 0; i < TAM_STR; i++){
         if (string[i] == ' '){
@@ -1505,7 +1503,7 @@ void ordenarPorNome(int total){
 char* printarEnumerados(int opcao, int pos){
     const char *nomesTpEndereco[] = {"Al.", "Av.", "Pr.", "Rua", "Tr.", "Rod."};
     const char *nomesTpContato[] = {"Cel.", "Com.", "Fixo", "Pes.", "Fax", "Per."};
-    const char *nomesTpRede[] = {"TWT.", "FB.", "IG.", "GH.", "LIn."};
+    const char *nomesTpRede[] = {"TT.", "FB.", "IG.", "GH.", "LIn."};
     pos--;
     
     // OPÇÃO 1: Enumerado dos Endereços
