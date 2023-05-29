@@ -1,0 +1,70 @@
+# Agenda: Projeto de Introdução à Programação (S1)
+O presente projeto visa o desenvolvimento de uma aplicação para gerenciamento de contatos telefônicos, similar ao que se encontra nos dispositivos móveis, porém mais simples. Para o desenvolvimento são estabelecidas algumas simplificações para compatibilizar com a realidade de uma disciplina introdutória de programação.
+
+REQUISITOS OBRIGATÓRIOS:
+1. Estrutura dos contatos (mínima):
+- Nome: cadeia de caracteres,
+- Tipo de endereço: enumerado (Alameda, Avenida, Praça, Rua, Travessa),
+- Endereço: cadeia de caracteres,
+- Número: inteiro
+- Número telefônico: cadeia de caracteres com restrição aos algarismos numéricos,
+- Tipo de contato: enumerado (celular, comercial, fixo, pessoal, fax, personalizado),
+- E-mail: cadeia de caracteres no formato <nome>@<domínio>,
+- Redes sociais 1: cadeia de caracteres,
+- Tipo de Redes Sociais: enumerado (Instagram, Facebook, LinkedIn, outros).
+
+2. Operações:
+- Inclusão: resulta na adição de um novo contato na agenda;
+- Alteração: resulta na modificação de um ou mais campos de um contato;
+- Consulta: resulta na simples exibição de um único contato;
+- Exclusão: resulta na eliminação do contato, e;
+- Listagem: resulta na listagem (relatório) de todos os contatos cadastrados.
+
+3. Persistência de dados: sugere-se o uso de arquivos ASCII (American Standard Code for Information Interchange) em formado CSV (Comma Separated Values). Entende-se arquivo ASCII como sendo arquivos de texto simples em que as informações são separadas por um caractere especial. Exemplo: ";" (ponto e vírgula). Outro separador pode ser utilizado pelos autores do trabalho.
+
+4. Ordenação de Informações: tanto a listagem de contatos, quanto o armazenamento em arquivo deve ocorrer segundo a ordem alfabética (lexicográfica) de forma ascendente, isto é, do 'a' ao 'z';
+
+5. Listagem de contatos: quando o usuário solicita a listagem de todos os contatos da agenda, a aplicação deve apresentá-los de forma ordenada, com a largura (número de caracteres) padronizada dos campos e com um limite de contatos (paginação). Ao atingir um certo número de contatos, a aplicação apresenta uma mensagem e espera o usuário pressionar alguma tecla para continuar.
+
+REQUISITOS OPCIONAIS: Entende-se por requisito opcional as funcionalidades e / ou características que somente serão suportadas pela aplicação por decisão da equipe. Os requisitos opcionais serão alvo de pontuação e poderão repor pontos de requisitos obrigatórios não contemplados.
+
+1. Arquivo de propriedades: um arquivo de propriedades é um recurso para armazenamento de parâmetros que influenciam o comportamento da aplicação.
+
+Um exemplo de um arquivo de configuração seria:
+Arquivo de dados=dados.csv
+Auto-save=verdadeiro
+Modo cores=verdadeiro
+Número máximo de contatos=500
+
+2. Auto-save: por simplicidade, sugere-se que a aplicação faça acesso ao arquivo de dados apenas em 2 momentos: início (para carga dos dados) e fim (para gravação dos dados) da execução. Durante os demais momentos da execução, os dados podem ser mantidos exclusivamente em memória. Porém, isto pode ocasionar a perda de dados caso haja uma queda de energia. Habilitando uma opção de auto-save a aplicação realizaria a persistência dos dados automaticamente após cada operação que altera o estado da agenda, isto é, após as operações de inclusão, alteração ou exclusão de contatos;
+
+3. Uso de cores na interface do usuário: o uso de cores é um recurso que torna a interface das aplicações mais agradável. Isto é mais interessante quando não se dispõe de recursos gráficos. Neste aspecto, deve haver um planejamento do uso de cores, de tal forma que não se tenha apenas uma variação no pano de fundo da tela (da cor preta para outra). Esta funcionalidade requer a prospecção de como modificar as cores de frente e fundo. Alguns elementos possíveis para uso de cores são as mensagens da aplicação, digitações do usuário, contornos (bordas) de áreas da tela utilizadas para mensagens, etc;
+
+4) Número variável de contatos: É comum encontrar aplicações que limitam a quantidade máxima de contatos. No caso do projeto, esta limitação se justifica pelo uso de estruturas de dimensionamento estático (vetores). Apesar de ser possível evitar este tipo de limitação, tal recurso não será exibido.
+
+Observações sobre o comportamento da aplicação e características gerais de desenvolvimento:
+1. Confirmação de operações: Antes da realização das operações que resultam em alteração do estado da agenda (inclusão, alteração e exclusão de contatos), o programa deverá confirmar a operação com o usuário (Confirma inclusão / alteração / exclusão (S / N) ?). O mesmo deve ser feito antes do encerramento da aplicação;
+2. Ordenação de dados: os dados devem ser ordenados de forma automática pela aplicação antes da listagem em tela ou da gravação em arquivo. Os contatos devem ser ordenados alfabeticamente (ordenação lexicográfica) pelo campo / atributo nome de forma ascendente, isto é, da letra 'a' para a letra 'z';
+3. Estratégia de desenvolvimento: será alvo de apreciação, assim como boas práticas de programação.
+a) Uso de comentários de código;
+b) Declaração de identificadores (nomes de variáveis, constantes e sub-rotinas) legíveis;
+c) Não uso de globais, e;
+d) Endentação do código.
+
+PONTUAÇÃO DAS FUNCIONALIDADES:
+a) Estrutura dos contatos: 0,5 ponto;
+b) Inclusão (de um novo contato): 1,0 ponto;
+c) Alteração (de um contato): 1,0 ponto;
+d) Consulta (de um contato): 0,5 ponto;
+e) Exclusão (de um contato): 1,0 ponto;
+f) Listagem (de todos os contatos): 1,0 ponto;
+g) Ordenação (dos contatos): 1,0 ponto;
+h) Gravação em arquivo: 1,0 ponto;
+i) Recuperação dos dados: 1,0 ponto;
+j) Estratégia de desenvolvimento: 2 pontos.
+
+Cada um dos requisitos opcionais corresponderá 0,5 ponto, desde que esteja implementado corretamente.
+
+> Todos os requisitos foram codificados, opcionais e obrigatórios.
+> 
+**NOTA: 10**
